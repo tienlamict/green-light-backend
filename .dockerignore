@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Build
+bin/
+dist/
+build/
+
+# Environment
+.env
+
+# Uploads
+uploads/
+
+# Documentation
+# docs/  # include swagger docs in Docker image
+*.md
+
+# Tests
+*_test.go
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
