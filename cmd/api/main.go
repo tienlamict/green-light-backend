@@ -9,8 +9,6 @@ import (
 	"green-light-backend/pkg/logger"
 	"log"
 
-	_ "green-light-backend/docs"
-
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
 )
