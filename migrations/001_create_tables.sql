@@ -57,3 +57,17 @@ CREATE TABLE IF NOT EXISTS `products` (
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Insert default admin user
+-- Email: admin@example.com
+-- Password: admin123
+INSERT INTO `users` (`user_id`, `email`, `password_hash`, `role`, `created_at`, `updated_at`)
+VALUES (
+  'a628f74e-6a75-4bc8-a287-51264a87b6fd',
+  'admin@example.com',
+  '$2a$10$2.Od0DDLmSf3LGRn21/wmu2owU7lnvYFoI4tSCzXNeGYNl7GE88F6',
+  'admin',
+  NOW(3),
+  NOW(3)
+)
+ON DUPLICATE KEY UPDATE `email` = `email`;
+

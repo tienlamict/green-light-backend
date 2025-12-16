@@ -7,6 +7,7 @@ import (
 	"green-light-backend/pkg/config"
 	"green-light-backend/pkg/database"
 	"green-light-backend/pkg/logger"
+	"green-light-backend/pkg/utils"
 	"log"
 
 	"gorm.io/gorm"
@@ -107,5 +108,44 @@ func migrateDatabase(db *gorm.DB) error {
 	// Re-enable foreign key checks
 	db.Exec("SET FOREIGN_KEY_CHECKS = 1")
 
+	// Create default admin user if not exists
+	if err := createDefaultAdminUser(db); err != nil {
+		return fmt.Errorf("failed to create default admin user: %w", err)
+	}
+
+	return nil
+}
+
+func createDefaultAdminUser(db *gorm.DB) error {
+	// Check if admin user already exists
+	var existingUser domain.User
+	result := db.Where("email = ?", "admin@example.com").First(&existingUser)
+	if result.Error == nil {
+		// Admin user already exists
+		return nil
+	}
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		return result.Error
+	}
+
+	// Hash password
+	hashedPassword, err := utils.HashPassword("admin123")
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Create admin user
+	admin := domain.User{
+		UserID:       utils.GenerateUUIDv7(),
+		Email:        "admin@example.com",
+		PasswordHash: hashedPassword,
+		Role:         domain.RoleAdmin,
+	}
+
+	if err := db.Create(&admin).Error; err != nil {
+		return fmt.Errorf("failed to create admin user: %w", err)
+	}
+
+	logger.Log.Info("Default admin user created: admin@example.com")
 	return nil
 }
