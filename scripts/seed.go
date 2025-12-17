@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"green-light-backend/internal/domain"
 	"green-light-backend/pkg/config"
@@ -19,19 +20,31 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	fmt.Printf("Connecting to database: %s@%s:%s/%s\n",
+		cfg.Database.User, cfg.Database.Host, cfg.Database.Port, cfg.Database.DBName)
+
 	// Connect to database
 	db, err := database.NewConnection(cfg.Database.DSN, logger.Silent)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	fmt.Println("✓ Database connection established")
+	fmt.Println("")
+
 	fmt.Println("Starting database seeding...")
+	fmt.Println("")
 
 	if err := seedDatabase(db); err != nil {
-		log.Fatalf("Failed to seed database: %v", err)
+		log.Fatalf("❌ Failed to seed database: %v", err)
 	}
 
-	fmt.Println("Database seeding completed successfully!")
+	fmt.Println("")
+	fmt.Println("✅ Database seeding completed successfully!")
+	fmt.Println("")
+	fmt.Println("You can now login with:")
+	fmt.Println("  Email: admin@example.com")
+	fmt.Println("  Password: admin123")
 }
 
 func seedDatabase(db *gorm.DB) error {
@@ -59,14 +72,21 @@ func seedUsers(db *gorm.DB) error {
 
 	// Check if admin already exists
 	var existingUser domain.User
-	if err := db.Where("email = ?", "admin@example.com").First(&existingUser).Error; err == nil {
-		fmt.Println("  Admin user already exists, skipping...")
+	err := db.Where("email = ?", "admin@example.com").First(&existingUser).Error
+	if err == nil {
+		fmt.Printf("  Admin user already exists (ID: %s), skipping...\n", existingUser.UserID)
 		return nil
+	}
+
+	// If error is not "record not found", it's a real error
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		fmt.Printf("  Warning: Error checking for existing user: %v\n", err)
+		// Continue anyway to try creating
 	}
 
 	hashedPassword, err := utils.HashPassword("admin123")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	admin := domain.User{
@@ -77,10 +97,18 @@ func seedUsers(db *gorm.DB) error {
 	}
 
 	if err := db.Create(&admin).Error; err != nil {
-		return err
+		return fmt.Errorf("failed to create admin user: %w", err)
 	}
 
-	fmt.Printf("  Created admin user: %s\n", admin.Email)
+	fmt.Printf("  ✓ Created admin user: %s (ID: %s)\n", admin.Email, admin.UserID)
+
+	// Verify it was created
+	var verifyUser domain.User
+	if err := db.Where("email = ?", "admin@example.com").First(&verifyUser).Error; err != nil {
+		return fmt.Errorf("failed to verify created user: %w", err)
+	}
+	fmt.Printf("  ✓ Verified admin user exists in database\n")
+
 	return nil
 }
 
@@ -236,4 +264,3 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 
 	return nil
 }
-
