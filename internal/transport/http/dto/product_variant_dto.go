@@ -1,0 +1,63 @@
+package dto
+
+import "green-light-backend/internal/domain"
+
+// CreateVariantRequest represents the request to create a product variant
+type CreateVariantRequest struct {
+	SKU        string            `json:"sku" binding:"required"`
+	Name       string            `json:"name" binding:"required"`
+	Attributes map[string]string `json:"attributes"`
+	Price      *float64          `json:"price"`
+	Stock      int               `json:"stock" binding:"min=0"`
+	IsActive   bool              `json:"is_active"`
+}
+
+// UpdateVariantRequest represents the request to update a product variant
+type UpdateVariantRequest struct {
+	SKU        *string            `json:"sku"`
+	Name       *string            `json:"name"`
+	Attributes *map[string]string `json:"attributes"`
+	Price      *float64           `json:"price"`
+	Stock      *int               `json:"stock" binding:"omitempty,min=0"`
+	IsActive   *bool              `json:"is_active"`
+}
+
+// VariantResponse represents the response for a product variant
+type VariantResponse struct {
+	VariantID  string            `json:"variant_id"`
+	ProductID  string            `json:"product_id"`
+	SKU        string            `json:"sku"`
+	Name       string            `json:"name"`
+	Attributes map[string]string `json:"attributes"`
+	Price      *float64          `json:"price"`
+	Stock      int               `json:"stock"`
+	IsActive   bool              `json:"is_active"`
+	CreatedAt  string            `json:"created_at"`
+	UpdatedAt  string            `json:"updated_at"`
+}
+
+// ToVariantResponse converts domain.ProductVariant to VariantResponse
+func ToVariantResponse(variant *domain.ProductVariant) VariantResponse {
+	return VariantResponse{
+		VariantID:  variant.VariantID,
+		ProductID:  variant.ProductID,
+		SKU:        variant.SKU,
+		Name:       variant.Name,
+		Attributes: variant.Attributes,
+		Price:      variant.Price,
+		Stock:      variant.Stock,
+		IsActive:   variant.IsActive,
+		CreatedAt:  variant.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:  variant.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+}
+
+// ToVariantListResponse converts slice of domain.ProductVariant to slice of VariantResponse
+func ToVariantListResponse(variants []*domain.ProductVariant) []VariantResponse {
+	responses := make([]VariantResponse, len(variants))
+	for i, variant := range variants {
+		responses[i] = ToVariantResponse(variant)
+	}
+	return responses
+}
+

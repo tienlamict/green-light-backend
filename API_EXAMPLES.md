@@ -1,534 +1,386 @@
-# API Examples
+# API Examples - Product Variants
 
-Complete examples for testing the Green Light Backend API.
+## Tạo Product với Variants
 
-## Table of Contents
-- [Authentication](#authentication)
-- [Products](#products)
-- [Categories](#categories)
-- [File Upload](#file-upload)
-- [Advanced Queries](#advanced-queries)
+### 1. Tạo Product đơn giản (không có variants)
 
----
-
-## Authentication
-
-### Login
-
-**Request:**
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com",
-    "password": "admin123"
-  }'
-```
+POST /api/v1/products
+Authorization: Bearer <token>
+Content-Type: application/json
 
-**Response:**
-```json
 {
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "user_id": "018e1234-5678-7abc-def0-123456789abc",
-      "email": "admin@example.com",
-      "role": "admin",
-      "created_at": "2025-11-06T10:00:00Z"
-    }
-  }
+  "name": "Wireless Mouse",
+  "slug": "wireless-mouse",
+  "sku": "MOUSE-001",
+  "short_desc": "Ergonomic wireless mouse",
+  "description": "High-precision wireless mouse with ergonomic design",
+  "price": 29.99,
+  "stock": 100,
+  "thumbnail_url": "/uploads/mouse.jpg",
+  "gallery": ["/uploads/mouse-1.jpg", "/uploads/mouse-2.jpg"],
+  "category_id": "category-uuid-here",
+  "is_active": true
 }
 ```
 
-### Get User Info
+### 2. Tạo Product với Variants (áo thun nhiều màu và size)
 
-**Request:**
 ```bash
-curl http://localhost:8080/api/v1/auth/user-info \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
+POST /api/v1/products
+Authorization: Bearer <token>
+Content-Type: application/json
 
-**Response:**
-```json
 {
-  "success": true,
-  "message": "User info retrieved",
-  "data": {
-    "user_id": "018e1234-5678-7abc-def0-123456789abc",
-    "email": "admin@example.com",
-    "role": "admin",
-    "created_at": "2025-11-06T10:00:00Z"
-  }
-}
-```
-
----
-
-## Products
-
-### List All Products
-
-**Request:**
-```bash
-curl "http://localhost:8080/api/v1/products?page=1&limit=10"
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
+  "name": "Cotton T-Shirt",
+  "slug": "cotton-t-shirt",
+  "sku": "",
+  "short_desc": "Premium cotton t-shirt",
+  "description": "Soft, breathable cotton t-shirt available in multiple colors and sizes",
+  "price": 29.99,
+  "stock": 0,
+  "thumbnail_url": "/uploads/tshirt.jpg",
+  "gallery": ["/uploads/tshirt-1.jpg", "/uploads/tshirt-2.jpg"],
+  "category_id": "category-uuid-here",
+  "is_active": true,
+  "variants": [
     {
-      "product_id": "018e1234-5678-7abc-def0-123456789abc",
-      "name": "Wireless Bluetooth Headphones",
-      "slug": "wireless-bluetooth-headphones",
-      "sku": "ELEC-HP-001",
-      "short_desc": "Premium wireless headphones with active noise cancellation",
-      "description": "Experience superior sound quality...",
-      "price": 199.99,
-      "stock": 50,
-      "thumbnail_url": "/uploads/headphones.jpg",
-      "gallery": ["/uploads/headphones-1.jpg", "/uploads/headphones-2.jpg"],
-      "category_id": "018e1234-5678-7abc-def0-category123",
-      "category": {
-        "category_id": "018e1234-5678-7abc-def0-category123",
-        "name": "Electronics",
-        "slug": "electronics",
-        "description": "Electronic devices and gadgets",
-        "is_active": true,
-        "created_at": "2025-11-06T10:00:00Z",
-        "updated_at": "2025-11-06T10:00:00Z"
+      "sku": "TSHIRT-RED-S",
+      "name": "Red - Small",
+      "attributes": {
+        "color": "red",
+        "size": "S"
       },
-      "is_active": true,
-      "created_at": "2025-11-06T10:00:00Z",
-      "updated_at": "2025-11-06T10:00:00Z"
+      "price": null,
+      "stock": 10,
+      "is_active": true
+    },
+    {
+      "sku": "TSHIRT-RED-M",
+      "name": "Red - Medium",
+      "attributes": {
+        "color": "red",
+        "size": "M"
+      },
+      "price": null,
+      "stock": 15,
+      "is_active": true
+    },
+    {
+      "sku": "TSHIRT-RED-L",
+      "name": "Red - Large",
+      "attributes": {
+        "color": "red",
+        "size": "L"
+      },
+      "price": null,
+      "stock": 20,
+      "is_active": true
+    },
+    {
+      "sku": "TSHIRT-BLUE-S",
+      "name": "Blue - Small",
+      "attributes": {
+        "color": "blue",
+        "size": "S"
+      },
+      "price": null,
+      "stock": 8,
+      "is_active": true
+    },
+    {
+      "sku": "TSHIRT-BLUE-M",
+      "name": "Blue - Medium",
+      "attributes": {
+        "color": "blue",
+        "size": "M"
+      },
+      "price": null,
+      "stock": 12,
+      "is_active": true
+    },
+    {
+      "sku": "TSHIRT-BLUE-L",
+      "name": "Blue - Large",
+      "attributes": {
+        "color": "blue",
+        "size": "L"
+      },
+      "price": 31.99,
+      "stock": 18,
+      "is_active": true
     }
-  ],
-  "meta": {
-    "total": 6,
-    "page": 1,
-    "limit": 10,
-    "total_pages": 1
-  }
+  ]
 }
 ```
 
-### Get Product by ID or Slug
-
-**Request by Slug:**
-```bash
-curl http://localhost:8080/api/v1/products/wireless-bluetooth-headphones
-```
-
-**Request by ID:**
-```bash
-curl http://localhost:8080/api/v1/products/018e1234-5678-7abc-def0-123456789abc
-```
-
-### Create Product
-
-**Request:**
-```bash
-curl -X POST http://localhost:8080/api/v1/products \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Mechanical Gaming Keyboard",
-    "slug": "mechanical-gaming-keyboard",
-    "sku": "ELEC-KB-001",
-    "short_desc": "RGB mechanical keyboard with Cherry MX switches",
-    "description": "Premium gaming keyboard featuring RGB backlighting, Cherry MX Red switches, and programmable keys. Perfect for gamers and typists alike.",
-    "price": 149.99,
-    "stock": 75,
-    "thumbnail_url": "/uploads/keyboard.jpg",
-    "gallery": ["/uploads/keyboard-1.jpg", "/uploads/keyboard-2.jpg"],
-    "category_id": "YOUR_CATEGORY_ID",
-    "is_active": true
-  }'
-```
-
 **Response:**
+
 ```json
 {
   "success": true,
   "message": "Product created",
   "data": {
-    "product_id": "018e5678-1234-7abc-def0-987654321abc",
-    "name": "Mechanical Gaming Keyboard",
-    "slug": "mechanical-gaming-keyboard",
-    ...
+    "product_id": "01JFXXX...",
+    "name": "Cotton T-Shirt",
+    "slug": "cotton-t-shirt",
+    "sku": "",
+    "short_desc": "Premium cotton t-shirt",
+    "description": "Soft, breathable cotton t-shirt available in multiple colors and sizes",
+    "price": 29.99,
+    "stock": 0,
+    "thumbnail_url": "/uploads/tshirt.jpg",
+    "gallery": ["/uploads/tshirt-1.jpg", "/uploads/tshirt-2.jpg"],
+    "category_id": "category-uuid-here",
+    "is_active": true,
+    "variants": [
+      {
+        "variant_id": "01JFYYY...",
+        "product_id": "01JFXXX...",
+        "sku": "TSHIRT-RED-S",
+        "name": "Red - Small",
+        "attributes": {
+          "color": "red",
+          "size": "S"
+        },
+        "price": null,
+        "stock": 10,
+        "is_active": true,
+        "created_at": "2025-12-19T13:00:00Z",
+        "updated_at": "2025-12-19T13:00:00Z"
+      },
+      ...
+    ],
+    "created_at": "2025-12-19T13:00:00Z",
+    "updated_at": "2025-12-19T13:00:00Z"
   }
 }
 ```
 
-### Update Product
+## Quản lý Variants
 
-**Request:**
+### 3. Lấy danh sách variants của product
+
 ```bash
-curl -X PUT http://localhost:8080/api/v1/products/018e5678-1234-7abc-def0-987654321abc \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "price": 129.99,
-    "stock": 100,
-    "is_active": true
-  }'
-```
-
-### Delete Product (Admin Only)
-
-**Request:**
-```bash
-curl -X DELETE http://localhost:8080/api/v1/products/018e5678-1234-7abc-def0-987654321abc \
-  -H "Authorization: Bearer YOUR_TOKEN"
+GET /api/v1/products/{product_id}/variants
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
-  "message": "Product deleted"
-}
-```
-
----
-
-## Categories
-
-### List All Categories
-
-**Request:**
-```bash
-curl http://localhost:8080/api/v1/categories
-```
-
-**Response:**
-```json
-{
-  "success": true,
+  "message": "Variants retrieved",
   "data": [
     {
-      "category_id": "018e1234-5678-7abc-def0-category123",
-      "name": "Electronics",
-      "slug": "electronics",
-      "description": "Electronic devices and gadgets",
+      "variant_id": "01JFYYY...",
+      "product_id": "01JFXXX...",
+      "sku": "TSHIRT-RED-S",
+      "name": "Red - Small",
+      "attributes": {
+        "color": "red",
+        "size": "S"
+      },
+      "price": null,
+      "stock": 10,
       "is_active": true,
-      "created_at": "2025-11-06T10:00:00Z",
-      "updated_at": "2025-11-06T10:00:00Z"
+      "created_at": "2025-12-19T13:00:00Z",
+      "updated_at": "2025-12-19T13:00:00Z"
     },
-    {
-      "category_id": "018e1234-5678-7abc-def0-category456",
-      "name": "Furniture",
-      "slug": "furniture",
-      "description": "Home and office furniture",
-      "is_active": true,
-      "created_at": "2025-11-06T10:00:00Z",
-      "updated_at": "2025-11-06T10:00:00Z"
-    }
-  ],
-  "meta": {
-    "total": 2,
-    "page": 1,
-    "limit": 10,
-    "total_pages": 1
-  }
+    ...
+  ]
 }
 ```
 
-### Get Category by Slug
+### 4. Tạo variant mới cho product đã tồn tại
 
-**Request:**
 ```bash
-curl http://localhost:8080/api/v1/categories/electronics
+POST /api/v1/products/{product_id}/variants
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "sku": "TSHIRT-GREEN-M",
+  "name": "Green - Medium",
+  "attributes": {
+    "color": "green",
+    "size": "M"
+  },
+  "price": 32.99,
+  "stock": 15,
+  "is_active": true
+}
 ```
 
-### Create Category
+### 5. Cập nhật variant
 
-**Request:**
 ```bash
-curl -X POST http://localhost:8080/api/v1/categories \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Accessories",
-    "slug": "accessories",
-    "description": "Product accessories and add-ons",
-    "is_active": true
-  }'
+PUT /api/v1/products/{product_id}/variants/{variant_id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "stock": 25,
+  "price": 34.99,
+  "is_active": true
+}
 ```
 
-### Update Category
+### 6. Xóa variant
 
-**Request:**
 ```bash
-curl -X PUT http://localhost:8080/api/v1/categories/CATEGORY_ID \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "description": "Updated description",
-    "is_active": true
-  }'
+DELETE /api/v1/products/{product_id}/variants/{variant_id}
+Authorization: Bearer <token>
 ```
 
-### Delete Category (Admin Only)
+### 7. Tìm variant theo SKU
 
-**Request:**
 ```bash
-curl -X DELETE http://localhost:8080/api/v1/categories/CATEGORY_ID \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-
----
-
-## File Upload
-
-### Upload Image
-
-**Request:**
-```bash
-curl -X POST http://localhost:8080/api/v1/uploads \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -F "file=@/path/to/your/image.jpg"
+GET /api/v1/variants/sku/TSHIRT-RED-L
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
-  "message": "File uploaded successfully",
+  "message": "Variant retrieved",
   "data": {
-    "url": "/uploads/a1b2c3d4-e5f6-7890-abcd-ef1234567890_1699200000.jpg"
+    "variant_id": "01JFYYY...",
+    "product_id": "01JFXXX...",
+    "sku": "TSHIRT-RED-L",
+    "name": "Red - Large",
+    "attributes": {
+      "color": "red",
+      "size": "L"
+    },
+    "price": null,
+    "stock": 20,
+    "is_active": true,
+    "created_at": "2025-12-19T13:00:00Z",
+    "updated_at": "2025-12-19T13:00:00Z"
   }
 }
 ```
 
----
+### 8. Lấy product kèm variants
 
-## Advanced Queries
-
-### Search Products by Keyword
-
-**Request:**
 ```bash
-curl "http://localhost:8080/api/v1/products?q=headphone"
+GET /api/v1/products/{product_id}
 ```
 
-### Filter by Category
-
-**Request:**
-```bash
-curl "http://localhost:8080/api/v1/products?category=018e1234-5678-7abc-def0-category123"
-```
-
-### Filter by Price Range
-
-**Request:**
-```bash
-curl "http://localhost:8080/api/v1/products?min_price=100&max_price=500"
-```
-
-### Combined Filters
-
-**Request:**
-```bash
-curl "http://localhost:8080/api/v1/products?q=phone&category=CATEGORY_ID&min_price=500&max_price=1000&page=1&limit=5&sort=price ASC"
-```
-
-### Filter Active Products Only
-
-**Request:**
-```bash
-curl "http://localhost:8080/api/v1/products?is_active=true"
-```
-
-### Search Categories
-
-**Request:**
-```bash
-curl "http://localhost:8080/api/v1/categories?search=electron"
-```
-
-### Sort Products
-
-**By newest:**
-```bash
-curl "http://localhost:8080/api/v1/products?sort=created_at DESC"
-```
-
-**By price (low to high):**
-```bash
-curl "http://localhost:8080/api/v1/products?sort=price ASC"
-```
-
-**By price (high to low):**
-```bash
-curl "http://localhost:8080/api/v1/products?sort=price DESC"
-```
-
-**By name:**
-```bash
-curl "http://localhost:8080/api/v1/products?sort=name ASC"
-```
-
----
-
-## Error Responses
-
-### 400 Bad Request
+**Response:**
 
 ```json
 {
-  "success": false,
-  "error": "Key: 'CreateProductRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag"
-}
-```
-
-### 401 Unauthorized
-
-```json
-{
-  "success": false,
-  "error": "Authorization header is required"
-}
-```
-
-### 403 Forbidden
-
-```json
-{
-  "success": false,
-  "error": "Insufficient permissions"
-}
-```
-
-### 404 Not Found
-
-```json
-{
-  "success": false,
-  "error": "Product not found"
-}
-```
-
-### 500 Internal Server Error
-
-```json
-{
-  "success": false,
-  "error": "Internal server error"
-}
-```
-
----
-
-## Postman Collection
-
-You can import these examples into Postman:
-
-1. Create a new collection
-2. Add a variable `{{baseUrl}}` = `http://localhost:8080`
-3. Add a variable `{{token}}` = your JWT token
-4. Use `{{baseUrl}}` and `{{token}}` in your requests
-
-Example:
-```
-{{baseUrl}}/api/v1/products
-Authorization: Bearer {{token}}
-```
-
----
-
-## Testing with Scripts
-
-### Bash Script Example
-
-```bash
-#!/bin/bash
-
-BASE_URL="http://localhost:8080"
-
-# Login and get token
-TOKEN=$(curl -s -X POST $BASE_URL/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com",
-    "password": "admin123"
-  }' | jq -r '.data.token')
-
-echo "Token: $TOKEN"
-
-# List products
-curl -s "$BASE_URL/api/v1/products" | jq
-
-# Create product
-curl -s -X POST "$BASE_URL/api/v1/products" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Test Product",
-    "sku": "TEST-001",
-    "price": 99.99,
-    "stock": 10,
-    "category_id": "YOUR_CATEGORY_ID",
-    "is_active": true
-  }' | jq
-```
-
----
-
-## JavaScript/Fetch Example
-
-```javascript
-const baseUrl = 'http://localhost:8080';
-let token = '';
-
-// Login
-async function login() {
-  const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: 'admin@example.com',
-      password: 'admin123'
-    })
-  });
-  
-  const data = await response.json();
-  token = data.data.token;
-  console.log('Logged in, token:', token);
-}
-
-// Get products
-async function getProducts() {
-  const response = await fetch(`${baseUrl}/api/v1/products`);
-  const data = await response.json();
-  console.log('Products:', data.data);
-}
-
-// Create product
-async function createProduct() {
-  const response = await fetch(`${baseUrl}/api/v1/products`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+  "success": true,
+  "message": "Product retrieved",
+  "data": {
+    "product_id": "01JFXXX...",
+    "name": "Cotton T-Shirt",
+    "slug": "cotton-t-shirt",
+    "sku": "",
+    "short_desc": "Premium cotton t-shirt",
+    "description": "Soft, breathable cotton t-shirt available in multiple colors and sizes",
+    "price": 29.99,
+    "stock": 0,
+    "thumbnail_url": "/uploads/tshirt.jpg",
+    "gallery": ["/uploads/tshirt-1.jpg", "/uploads/tshirt-2.jpg"],
+    "category_id": "category-uuid-here",
+    "category": {
+      "category_id": "category-uuid-here",
+      "name": "Clothing",
+      "slug": "clothing",
+      "description": "Clothing and apparel",
+      "is_active": true,
+      "created_at": "2025-12-19T12:00:00Z",
+      "updated_at": "2025-12-19T12:00:00Z"
     },
-    body: JSON.stringify({
-      name: 'New Product',
-      sku: 'NP-001',
-      price: 199.99,
-      stock: 50,
-      category_id: 'YOUR_CATEGORY_ID',
-      is_active: true
-    })
-  });
-  
-  const data = await response.json();
-  console.log('Created product:', data.data);
+    "is_active": true,
+    "variants": [
+      {
+        "variant_id": "01JFYYY...",
+        "product_id": "01JFXXX...",
+        "sku": "TSHIRT-RED-S",
+        "name": "Red - Small",
+        "attributes": {
+          "color": "red",
+          "size": "S"
+        },
+        "price": null,
+        "stock": 10,
+        "is_active": true,
+        "created_at": "2025-12-19T13:00:00Z",
+        "updated_at": "2025-12-19T13:00:00Z"
+      },
+      ...
+    ],
+    "created_at": "2025-12-19T13:00:00Z",
+    "updated_at": "2025-12-19T13:00:00Z"
+  }
 }
-
-// Run
-login().then(getProducts).then(createProduct);
 ```
+
+## Ví dụ khác
+
+### Điện thoại với nhiều dung lượng
+
+```json
+{
+  "name": "Smartphone Pro",
+  "slug": "smartphone-pro",
+  "sku": "",
+  "short_desc": "Latest flagship smartphone",
+  "description": "Premium smartphone with advanced features",
+  "price": 999.99,
+  "stock": 0,
+  "thumbnail_url": "/uploads/phone.jpg",
+  "gallery": ["/uploads/phone-1.jpg"],
+  "category_id": "electronics-uuid",
+  "is_active": true,
+  "variants": [
+    {
+      "sku": "PHONE-128-BLK",
+      "name": "128GB - Black",
+      "attributes": {
+        "storage": "128GB",
+        "color": "black"
+      },
+      "price": null,
+      "stock": 50,
+      "is_active": true
+    },
+    {
+      "sku": "PHONE-256-BLK",
+      "name": "256GB - Black",
+      "attributes": {
+        "storage": "256GB",
+        "color": "black"
+      },
+      "price": 1099.99,
+      "stock": 30,
+      "is_active": true
+    },
+    {
+      "sku": "PHONE-512-BLK",
+      "name": "512GB - Black",
+      "attributes": {
+        "storage": "512GB",
+        "color": "black"
+      },
+      "price": 1299.99,
+      "stock": 20,
+      "is_active": true
+    }
+  ]
+}
+```
+
+## Lưu ý
+
+1. **SKU ở product level** là optional nếu dùng variants
+2. **SKU ở variant level** là required và unique
+3. **Price** của variant có thể null (dùng giá của product) hoặc override
+4. **Stock** tổng của product = sum(stock của tất cả variants)
+5. **Attributes** là JSON object flexible (color, size, storage, material, etc.)
+6. Khi GET product, variants sẽ tự động được include trong response

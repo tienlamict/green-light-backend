@@ -3,17 +3,18 @@ package dto
 import "green-light-backend/internal/domain"
 
 type CreateProductRequest struct {
-	Name         string   `json:"name" binding:"required,min=2,max=255"`
-	Slug         string   `json:"slug" binding:"omitempty,max=255"`
-	SKU          string   `json:"sku" binding:"required,max=100"`
-	ShortDesc    string   `json:"short_desc" binding:"max=500"`
-	Description  string   `json:"description"`
-	Price        float64  `json:"price" binding:"required,gt=0"`
-	Stock        int      `json:"stock" binding:"gte=0"`
-	ThumbnailURL string   `json:"thumbnail_url"`
-	Gallery      []string `json:"gallery"`
-	CategoryID   string   `json:"category_id" binding:"required"`
-	IsActive     bool     `json:"is_active"`
+	Name         string                  `json:"name" binding:"required,min=2,max=255"`
+	Slug         string                  `json:"slug" binding:"omitempty,max=255"`
+	SKU          string                  `json:"sku" binding:"omitempty,max=100"` // Optional if using variants
+	ShortDesc    string                  `json:"short_desc" binding:"max=500"`
+	Description  string                  `json:"description"`
+	Price        float64                 `json:"price" binding:"required,gt=0"`
+	Stock        int                     `json:"stock" binding:"gte=0"`
+	ThumbnailURL string                  `json:"thumbnail_url"`
+	Gallery      []string                `json:"gallery"`
+	CategoryID   string                  `json:"category_id" binding:"required"`
+	IsActive     bool                    `json:"is_active"`
+	Variants     []CreateVariantRequest  `json:"variants"` // Optional: create variants with product
 }
 
 type UpdateProductRequest struct {
@@ -44,6 +45,7 @@ type ProductResponse struct {
 	CategoryID   string            `json:"category_id"`
 	Category     *CategoryResponse `json:"category,omitempty"`
 	IsActive     bool              `json:"is_active"`
+	Variants     []VariantResponse `json:"variants,omitempty"` // Include variants if available
 	CreatedAt    string            `json:"created_at"`
 	UpdatedAt    string            `json:"updated_at"`
 }

@@ -13,11 +13,13 @@ import (
 
 type ProductHandler struct {
 	productUseCase *usecase.ProductUseCase
+	variantUseCase *usecase.ProductVariantUseCase
 }
 
-func NewProductHandler(productUseCase *usecase.ProductUseCase) *ProductHandler {
+func NewProductHandler(productUseCase *usecase.ProductUseCase, variantUseCase *usecase.ProductVariantUseCase) *ProductHandler {
 	return &ProductHandler{
 		productUseCase: productUseCase,
+		variantUseCase: variantUseCase,
 	}
 }
 
@@ -116,7 +118,15 @@ func (h *ProductHandler) Get(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessResponse(dto.ToProductResponse(product), "Product retrieved"))
+	// Get variants for this product
+	variants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
+	
+	response := dto.ToProductResponse(product)
+	if len(variants) > 0 {
+		response.Variants = dto.ToVariantListResponse(variants)
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product retrieved"))
 }
 
 // Create godoc
@@ -139,6 +149,19 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// Convert variant requests to usecase inputs
+	variants := make([]usecase.CreateVariantInput, len(req.Variants))
+	for i, v := range req.Variants {
+		variants[i] = usecase.CreateVariantInput{
+			SKU:        v.SKU,
+			Name:       v.Name,
+			Attributes: v.Attributes,
+			Price:      v.Price,
+			Stock:      v.Stock,
+			IsActive:   v.IsActive,
+		}
+	}
+
 	input := usecase.CreateProductInput{
 		Name:         req.Name,
 		Slug:         req.Slug,
@@ -151,6 +174,7 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		Gallery:      req.Gallery,
 		CategoryID:   req.CategoryID,
 		IsActive:     req.IsActive,
+		Variants:     variants,
 	}
 
 	product, err := h.productUseCase.Create(c.Request.Context(), input)
@@ -167,7 +191,15 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, dto.SuccessResponse(dto.ToProductResponse(product), "Product created"))
+	// Get variants for response
+	variants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
+	
+	response := dto.ToProductResponse(product)
+	if len(variants) > 0 {
+		response.Variants = dto.ToVariantListResponse(variants)
+	}
+
+	c.JSON(http.StatusCreated, dto.SuccessResponse(response, "Product created"))
 }
 
 // Update godoc

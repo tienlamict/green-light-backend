@@ -18,12 +18,14 @@ var (
 type ProductUseCase struct {
 	productRepo  domain.ProductRepository
 	categoryRepo domain.CategoryRepository
+	variantRepo  domain.ProductVariantRepository
 }
 
-func NewProductUseCase(productRepo domain.ProductRepository, categoryRepo domain.CategoryRepository) *ProductUseCase {
+func NewProductUseCase(productRepo domain.ProductRepository, categoryRepo domain.CategoryRepository, variantRepo domain.ProductVariantRepository) *ProductUseCase {
 	return &ProductUseCase{
 		productRepo:  productRepo,
 		categoryRepo: categoryRepo,
+		variantRepo:  variantRepo,
 	}
 }
 
@@ -39,6 +41,16 @@ type CreateProductInput struct {
 	Gallery      []string
 	CategoryID   string
 	IsActive     bool
+	Variants     []CreateVariantInput // Optional: create variants with product
+}
+
+type CreateVariantInput struct {
+	SKU        string
+	Name       string
+	Attributes map[string]string
+	Price      *float64
+	Stock      int
+	IsActive   bool
 }
 
 type UpdateProductInput struct {
@@ -102,6 +114,27 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 
 	if err := uc.productRepo.Create(ctx, product); err != nil {
 		return nil, err
+	}
+
+	// Create variants if provided
+	if len(input.Variants) > 0 {
+		for _, variantInput := range input.Variants {
+			variant := &domain.ProductVariant{
+				VariantID:  utils.GenerateUUIDv7(),
+				ProductID:  product.ProductID,
+				SKU:        variantInput.SKU,
+				Name:       variantInput.Name,
+				Attributes: variantInput.Attributes,
+				Price:      variantInput.Price,
+				Stock:      variantInput.Stock,
+				IsActive:   variantInput.IsActive,
+			}
+			if err := uc.variantRepo.Create(ctx, variant); err != nil {
+				// Rollback: delete product if variant creation fails
+				_ = uc.productRepo.Delete(ctx, product.ProductID)
+				return nil, err
+			}
+		}
 	}
 
 	// Reload to get category relationship

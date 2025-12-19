@@ -8,6 +8,7 @@ import (
 	"green-light-backend/pkg/database"
 	"green-light-backend/pkg/utils"
 	"log"
+	"os"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -38,6 +39,14 @@ func main() {
 	if err := seedDatabase(db); err != nil {
 		log.Fatalf("❌ Failed to seed database: %v", err)
 	}
+
+	// Seed product variants (example: Product with multiple colors)
+	fmt.Println("Seeding product variants...")
+	if err := seedProductVariants(db); err != nil {
+		fmt.Printf("❌ Failed to seed product variants: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("✅ Product variants seeded successfully")
 
 	fmt.Println("")
 	fmt.Println("✅ Database seeding completed successfully!")
@@ -260,6 +269,74 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 		}
 
 		fmt.Printf("  Created product: %s\n", products[i].Name)
+	}
+
+	return nil
+}
+
+func seedProductVariants(db *gorm.DB) error {
+	// Find a product to add variants to (e.g., the first product)
+	var product domain.Product
+	if err := db.First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Println("⚠️  No products found to add variants to")
+			return nil
+		}
+		return err
+	}
+
+	fmt.Printf("Adding variants to product: %s\n", product.Name)
+
+	// Create variants for the first product
+	variants := []domain.ProductVariant{
+		{
+			VariantID:  utils.GenerateUUIDv7(),
+			ProductID:  product.ProductID,
+			SKU:        "ELEC-HP-001-BLK",
+			Name:       "Black",
+			Attributes: domain.VariantAttributes{"color": "black"},
+			Price:      nil, // Use product price
+			Stock:      25,
+			IsActive:   true,
+		},
+		{
+			VariantID:  utils.GenerateUUIDv7(),
+			ProductID:  product.ProductID,
+			SKU:        "ELEC-HP-001-WHT",
+			Name:       "White",
+			Attributes: domain.VariantAttributes{"color": "white"},
+			Price:      nil,
+			Stock:      20,
+			IsActive:   true,
+		},
+		{
+			VariantID:  utils.GenerateUUIDv7(),
+			ProductID:  product.ProductID,
+			SKU:        "ELEC-HP-001-RED",
+			Name:       "Red",
+			Attributes: domain.VariantAttributes{"color": "red"},
+			Price:      func() *float64 { p := 89.99; return &p }(), // Premium color
+			Stock:      15,
+			IsActive:   true,
+		},
+	}
+
+	for _, variant := range variants {
+		var existingVariant domain.ProductVariant
+		err := db.Where("sku = ?", variant.SKU).First(&existingVariant).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Variant doesn't exist, create it
+				if err := db.Create(&variant).Error; err != nil {
+					return fmt.Errorf("failed to create variant %s: %w", variant.SKU, err)
+				}
+				fmt.Printf("  ✓ Created variant: %s (%s)\n", variant.Name, variant.SKU)
+			} else {
+				return fmt.Errorf("failed to check variant existence: %w", err)
+			}
+		} else {
+			fmt.Printf("  ⚠️  Variant already exists: %s\n", variant.SKU)
+		}
 	}
 
 	return nil
