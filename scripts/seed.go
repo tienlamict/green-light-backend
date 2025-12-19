@@ -264,3 +264,4 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 
 	return nil
 }
+

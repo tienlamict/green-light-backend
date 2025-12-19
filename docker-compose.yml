@@ -3,6 +3,7 @@ services:
     image: mysql:8.0.32
     container_name: greenlight_db
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --skip-ssl
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: greenlight_db
@@ -12,6 +13,7 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+      - ./migrations/001_create_tables.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       interval: 10s

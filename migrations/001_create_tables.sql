@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`category_id`),
-  INDEX `idx_categories_slug` (`slug`),
+  UNIQUE INDEX `idx_categories_slug` (`slug`),
   INDEX `idx_categories_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
 CREATE TABLE IF NOT EXISTS `products` (
   `product_id` VARCHAR(36) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
-  `slug` VARCHAR(255) NOT NULL UNIQUE,
+  `slug` VARCHAR(255) NOT NULL,
   `sku` VARCHAR(100) NOT NULL,
   `short_desc` VARCHAR(500),
   `description` TEXT,
@@ -45,17 +45,21 @@ CREATE TABLE IF NOT EXISTS `products` (
   `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`product_id`),
-  INDEX `idx_products_slug` (`slug`),
+  UNIQUE INDEX `idx_products_slug` (`slug`),
   INDEX `idx_products_sku` (`sku`),
   INDEX `idx_products_category_id` (`category_id`),
   INDEX `idx_products_is_active` (`is_active`),
-  INDEX `idx_products_price` (`price`),
-  CONSTRAINT `fk_products_category` 
-    FOREIGN KEY (`category_id`) 
-    REFERENCES `categories`(`category_id`) 
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
+  INDEX `idx_products_price` (`price`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Add foreign key constraint separately to ensure correct relationship
+-- Products reference Categories (not the other way around!)
+ALTER TABLE `products`
+ADD CONSTRAINT `fk_products_category` 
+  FOREIGN KEY (`category_id`) 
+  REFERENCES `categories`(`category_id`) 
+  ON DELETE CASCADE 
+  ON UPDATE CASCADE;
 
 -- Insert default admin user
 -- Email: admin@example.com

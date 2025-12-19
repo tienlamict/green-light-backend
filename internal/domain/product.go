@@ -51,8 +51,9 @@ type Product struct {
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	// Relationships
-	Category *Category `gorm:"foreignKey:CategoryID;constraint:OnDelete:CASCADE" json:"category,omitempty"`
+	// Relationships - product belongs to one category
+	// NOTE: Do NOT include constraint in tag - it causes GORM to create wrong FK
+	Category *Category `gorm:"-" json:"category,omitempty"`
 }
 
 func (Product) TableName() string {

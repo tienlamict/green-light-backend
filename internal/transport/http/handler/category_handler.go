@@ -4,10 +4,12 @@ import (
 	"green-light-backend/internal/domain"
 	"green-light-backend/internal/transport/http/dto"
 	"green-light-backend/internal/usecase"
+	"green-light-backend/pkg/logger"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -131,11 +133,24 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 
 	category, err := h.categoryUseCase.Create(c.Request.Context(), input)
 	if err != nil {
+		// Log error for debugging
+		logger.Log.Error("Failed to create category",
+			zap.String("error", err.Error()),
+			zap.String("name", input.Name),
+			zap.String("slug", input.Slug),
+		)
+		
 		if err == usecase.ErrCategorySlugExists {
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("Failed to create category"))
+		
+		// Return detailed error message
+		errorMsg := err.Error()
+		if errorMsg == "" {
+			errorMsg = "Failed to create category"
+		}
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse(errorMsg))
 		return
 	}
 

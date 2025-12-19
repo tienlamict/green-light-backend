@@ -83,36 +83,17 @@ func main() {
 }
 
 func migrateDatabase(db *gorm.DB) error {
-	// Disable foreign key checks temporarily for migration
-	db.Exec("SET FOREIGN_KEY_CHECKS = 0")
-
-	// Migrate tables in correct order to avoid foreign key issues
-	// 1. Users (no dependencies)
-	if err := db.AutoMigrate(&domain.User{}); err != nil {
-		db.Exec("SET FOREIGN_KEY_CHECKS = 1") // Re-enable before returning
-		return fmt.Errorf("failed to migrate users table: %w", err)
+	// NOTE: We DO NOT use GORM AutoMigrate because it creates wrong foreign keys
+	// Instead, we rely on SQL migration scripts in migrations/001_create_tables.sql
+	
+	// Just verify tables exist
+	var tableCount int64
+	db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('users', 'categories', 'products')").Scan(&tableCount)
+	
+	if tableCount < 3 {
+		return fmt.Errorf("tables not found - please run SQL migration: migrations/001_create_tables.sql")
 	}
-
-	// 2. Categories (no dependencies)
-	if err := db.AutoMigrate(&domain.Category{}); err != nil {
-		db.Exec("SET FOREIGN_KEY_CHECKS = 1") // Re-enable before returning
-		return fmt.Errorf("failed to migrate categories table: %w", err)
-	}
-
-	// 3. Products (depends on Categories)
-	if err := db.AutoMigrate(&domain.Product{}); err != nil {
-		db.Exec("SET FOREIGN_KEY_CHECKS = 1") // Re-enable before returning
-		return fmt.Errorf("failed to migrate products table: %w", err)
-	}
-
-	// Re-enable foreign key checks
-	db.Exec("SET FOREIGN_KEY_CHECKS = 1")
-
-	// Create default admin user if not exists
-	if err := createDefaultAdminUser(db); err != nil {
-		return fmt.Errorf("failed to create default admin user: %w", err)
-	}
-
+	
 	return nil
 }
 
