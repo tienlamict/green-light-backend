@@ -59,6 +59,59 @@ func (m *mockProductRepository) List(ctx context.Context, filter domain.ProductF
 	return products, int64(len(products)), nil
 }
 
+// Mock product variant repository
+type mockProductVariantRepository struct {
+	variants map[string]*domain.ProductVariant
+}
+
+func newMockProductVariantRepository() *mockProductVariantRepository {
+	return &mockProductVariantRepository{
+		variants: make(map[string]*domain.ProductVariant),
+	}
+}
+
+func (m *mockProductVariantRepository) Create(ctx context.Context, variant *domain.ProductVariant) error {
+	m.variants[variant.VariantID] = variant
+	return nil
+}
+
+func (m *mockProductVariantRepository) GetByID(ctx context.Context, variantID string) (*domain.ProductVariant, error) {
+	variant, exists := m.variants[variantID]
+	if !exists {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return variant, nil
+}
+
+func (m *mockProductVariantRepository) GetBySKU(ctx context.Context, sku string) (*domain.ProductVariant, error) {
+	for _, variant := range m.variants {
+		if variant.SKU == sku {
+			return variant, nil
+		}
+	}
+	return nil, gorm.ErrRecordNotFound
+}
+
+func (m *mockProductVariantRepository) GetByProductID(ctx context.Context, productID string) ([]*domain.ProductVariant, error) {
+	variants := make([]*domain.ProductVariant, 0)
+	for _, variant := range m.variants {
+		if variant.ProductID == productID {
+			variants = append(variants, variant)
+		}
+	}
+	return variants, nil
+}
+
+func (m *mockProductVariantRepository) Update(ctx context.Context, variant *domain.ProductVariant) error {
+	m.variants[variant.VariantID] = variant
+	return nil
+}
+
+func (m *mockProductVariantRepository) Delete(ctx context.Context, variantID string) error {
+	delete(m.variants, variantID)
+	return nil
+}
+
 // Mock category repository
 type mockCategoryRepository struct {
 	categories map[string]*domain.Category
@@ -114,7 +167,8 @@ func TestProductUseCase_Create(t *testing.T) {
 	// Setup
 	mockProdRepo := newMockProductRepository()
 	mockCatRepo := newMockCategoryRepository()
-	productUC := NewProductUseCase(mockProdRepo, mockCatRepo)
+	mockVariantRepo := newMockProductVariantRepository()
+	productUC := NewProductUseCase(mockProdRepo, mockCatRepo, mockVariantRepo)
 
 	// Create test category
 	testCategory := &domain.Category{
@@ -192,7 +246,8 @@ func TestProductUseCase_GetByID(t *testing.T) {
 	// Setup
 	mockProdRepo := newMockProductRepository()
 	mockCatRepo := newMockCategoryRepository()
-	productUC := NewProductUseCase(mockProdRepo, mockCatRepo)
+	mockVariantRepo := newMockProductVariantRepository()
+	productUC := NewProductUseCase(mockProdRepo, mockCatRepo, mockVariantRepo)
 
 	// Create test product
 	testProduct := &domain.Product{

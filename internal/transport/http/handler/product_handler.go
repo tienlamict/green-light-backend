@@ -120,7 +120,7 @@ func (h *ProductHandler) Get(c *gin.Context) {
 
 	// Get variants for this product
 	variants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
-	
+
 	response := dto.ToProductResponse(product)
 	if len(variants) > 0 {
 		response.Variants = dto.ToVariantListResponse(variants)
@@ -150,9 +150,9 @@ func (h *ProductHandler) Create(c *gin.Context) {
 	}
 
 	// Convert variant requests to usecase inputs
-	variants := make([]usecase.CreateVariantInput, len(req.Variants))
+	variants := make([]usecase.CreateProductVariantInput, len(req.Variants))
 	for i, v := range req.Variants {
-		variants[i] = usecase.CreateVariantInput{
+		variants[i] = usecase.CreateProductVariantInput{
 			SKU:        v.SKU,
 			Name:       v.Name,
 			Attributes: v.Attributes,
@@ -192,11 +192,11 @@ func (h *ProductHandler) Create(c *gin.Context) {
 	}
 
 	// Get variants for response
-	variants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
-	
+	fetchedVariants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
+
 	response := dto.ToProductResponse(product)
-	if len(variants) > 0 {
-		response.Variants = dto.ToVariantListResponse(variants)
+	if len(fetchedVariants) > 0 {
+		response.Variants = dto.ToVariantListResponse(fetchedVariants)
 	}
 
 	c.JSON(http.StatusCreated, dto.SuccessResponse(response, "Product created"))

@@ -41,10 +41,10 @@ type CreateProductInput struct {
 	Gallery      []string
 	CategoryID   string
 	IsActive     bool
-	Variants     []CreateVariantInput // Optional: create variants with product
+	Variants     []CreateProductVariantInput // Optional: create variants with product
 }
 
-type CreateVariantInput struct {
+type CreateProductVariantInput struct {
 	SKU        string
 	Name       string
 	Attributes map[string]string
