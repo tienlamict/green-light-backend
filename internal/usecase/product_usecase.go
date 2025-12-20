@@ -35,20 +35,19 @@ type CreateProductInput struct {
 	SKU          string
 	ShortDesc    string
 	Description  string
-	Price        float64
 	Stock        int
 	ThumbnailURL string
 	Gallery      []string
 	CategoryID   string
 	IsActive     bool
-	Variants     []CreateProductVariantInput // Optional: create variants with product
+	Variants     []CreateProductVariantInput // Required: at least 1 variant
 }
 
 type CreateProductVariantInput struct {
 	SKU        string
 	Name       string
 	Attributes map[string]string
-	Price      *float64
+	Price      float64 // Required for variants
 	Stock      int
 	IsActive   bool
 }
@@ -59,7 +58,6 @@ type UpdateProductInput struct {
 	SKU          *string
 	ShortDesc    *string
 	Description  *string
-	Price        *float64
 	Stock        *int
 	ThumbnailURL *string
 	Gallery      *[]string
@@ -104,7 +102,6 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 		SKU:          input.SKU,
 		ShortDesc:    input.ShortDesc,
 		Description:  input.Description,
-		Price:        input.Price,
 		Stock:        input.Stock,
 		ThumbnailURL: input.ThumbnailURL,
 		Gallery:      gallery,
@@ -116,24 +113,27 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 		return nil, err
 	}
 
-	// Create variants if provided
-	if len(input.Variants) > 0 {
-		for _, variantInput := range input.Variants {
-			variant := &domain.ProductVariant{
-				VariantID:  utils.GenerateUUIDv7(),
-				ProductID:  product.ProductID,
-				SKU:        variantInput.SKU,
-				Name:       variantInput.Name,
-				Attributes: variantInput.Attributes,
-				Price:      variantInput.Price,
-				Stock:      variantInput.Stock,
-				IsActive:   variantInput.IsActive,
-			}
-			if err := uc.variantRepo.Create(ctx, variant); err != nil {
-				// Rollback: delete product if variant creation fails
-				_ = uc.productRepo.Delete(ctx, product.ProductID)
-				return nil, err
-			}
+	// Create variants (required - at least 1 variant)
+	if len(input.Variants) == 0 {
+		_ = uc.productRepo.Delete(ctx, product.ProductID)
+		return nil, errors.New("at least one variant is required")
+	}
+
+	for _, variantInput := range input.Variants {
+		variant := &domain.ProductVariant{
+			VariantID:  utils.GenerateUUIDv7(),
+			ProductID:  product.ProductID,
+			SKU:        variantInput.SKU,
+			Name:       variantInput.Name,
+			Attributes: variantInput.Attributes,
+			Price:      variantInput.Price,
+			Stock:      variantInput.Stock,
+			IsActive:   variantInput.IsActive,
+		}
+		if err := uc.variantRepo.Create(ctx, variant); err != nil {
+			// Rollback: delete product if variant creation fails
+			_ = uc.productRepo.Delete(ctx, product.ProductID)
+			return nil, err
 		}
 	}
 
@@ -206,9 +206,7 @@ func (uc *ProductUseCase) Update(ctx context.Context, productID string, input Up
 	if input.Description != nil {
 		product.Description = *input.Description
 	}
-	if input.Price != nil {
-		product.Price = *input.Price
-	}
+	// Note: Price is now managed via variants, not directly on product
 	if input.Stock != nil {
 		product.Stock = *input.Stock
 	}

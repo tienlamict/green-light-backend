@@ -58,7 +58,15 @@ func main() {
 		var products []domain.Product
 		db.Limit(5).Find(&products)
 		for _, prod := range products {
-			fmt.Printf("  - %s (ID: %s, Price: $%.2f)\n", prod.Name, prod.ProductID, prod.Price)
+			priceRange := "N/A"
+		if prod.PriceMin != nil && prod.PriceMax != nil {
+			if *prod.PriceMin == *prod.PriceMax {
+				priceRange = fmt.Sprintf("$%.2f", *prod.PriceMin)
+			} else {
+				priceRange = fmt.Sprintf("$%.2f - $%.2f", *prod.PriceMin, *prod.PriceMax)
+			}
+		}
+		fmt.Printf("  - %s (ID: %s, Price: %s)\n", prod.Name, prod.ProductID, priceRange)
 		}
 		if productCount > 5 {
 			fmt.Printf("  ... and %d more\n", productCount-5)

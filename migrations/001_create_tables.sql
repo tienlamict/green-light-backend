@@ -1,6 +1,11 @@
 -- Migration: Create Tables
 -- Created: 2025-11-06
--- Description: Initial database schema for Green Light Backend
+-- Updated: 2025-12-20 - Updated pricing model (price_min/price_max)
+-- Description: Complete database schema for Green Light Backend
+
+-- ============================================================================
+-- TABLES
+-- ============================================================================
 
 -- Create users table first (no foreign keys)
 CREATE TABLE IF NOT EXISTS `users` (
@@ -29,15 +34,16 @@ CREATE TABLE IF NOT EXISTS `categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create products table (has foreign key to categories)
--- SKU is nullable because products can use variants instead
+-- Note: price_min and price_max are calculated from variants
 CREATE TABLE IF NOT EXISTS `products` (
   `product_id` VARCHAR(36) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `slug` VARCHAR(255) NOT NULL,
-  `sku` VARCHAR(100) NULL COMMENT 'Base SKU (optional if using variants)',
+  `sku` VARCHAR(100) NULL COMMENT 'Base SKU (optional)',
   `short_desc` VARCHAR(500),
   `description` TEXT,
-  `price` DECIMAL(10,2) NOT NULL,
+  `price_min` DECIMAL(10,2) NULL COMMENT 'Minimum price from variants',
+  `price_max` DECIMAL(10,2) NULL COMMENT 'Maximum price from variants',
   `stock` INT NOT NULL DEFAULT 0,
   `thumbnail_url` VARCHAR(500),
   `gallery` JSON,
@@ -50,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   INDEX `idx_products_sku` (`sku`),
   INDEX `idx_products_category_id` (`category_id`),
   INDEX `idx_products_is_active` (`is_active`),
-  INDEX `idx_products_price` (`price`)
+  INDEX `idx_products_price_range` (`price_min`, `price_max`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add foreign key constraint separately to ensure correct relationship
@@ -63,14 +69,14 @@ ADD CONSTRAINT `fk_products_category`
   ON UPDATE CASCADE;
 
 -- Create product_variants table (supports multiple SKUs per product)
--- Supports variants like color, size, etc.
+-- Each variant MUST have a price
 CREATE TABLE IF NOT EXISTS `product_variants` (
   `variant_id` VARCHAR(36) NOT NULL,
   `product_id` VARCHAR(36) NOT NULL,
   `sku` VARCHAR(100) NOT NULL,
   `name` VARCHAR(255) NOT NULL COMMENT 'Variant name: e.g., "Red - Large", "Blue - Small"',
   `attributes` JSON COMMENT 'Variant attributes: {"color": "red", "size": "L"}',
-  `price` DECIMAL(10,2) COMMENT 'Override product price if different',
+  `price` DECIMAL(10,2) NOT NULL COMMENT 'Variant price (required)',
   `stock` INT NOT NULL DEFAULT 0,
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
   `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -86,6 +92,52 @@ CREATE TABLE IF NOT EXISTS `product_variants` (
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================================
+-- TRIGGERS
+-- ============================================================================
+-- Auto-update product price_min and price_max when variants change
+
+DELIMITER $$
+
+CREATE TRIGGER `update_product_price_after_variant_insert`
+AFTER INSERT ON `product_variants`
+FOR EACH ROW
+BEGIN
+    UPDATE `products`
+    SET 
+        `price_min` = (SELECT MIN(price) FROM `product_variants` WHERE product_id = NEW.product_id),
+        `price_max` = (SELECT MAX(price) FROM `product_variants` WHERE product_id = NEW.product_id)
+    WHERE `product_id` = NEW.product_id;
+END$$
+
+CREATE TRIGGER `update_product_price_after_variant_update`
+AFTER UPDATE ON `product_variants`
+FOR EACH ROW
+BEGIN
+    UPDATE `products`
+    SET 
+        `price_min` = (SELECT MIN(price) FROM `product_variants` WHERE product_id = NEW.product_id),
+        `price_max` = (SELECT MAX(price) FROM `product_variants` WHERE product_id = NEW.product_id)
+    WHERE `product_id` = NEW.product_id;
+END$$
+
+CREATE TRIGGER `update_product_price_after_variant_delete`
+AFTER DELETE ON `product_variants`
+FOR EACH ROW
+BEGIN
+    UPDATE `products`
+    SET 
+        `price_min` = (SELECT MIN(price) FROM `product_variants` WHERE product_id = OLD.product_id),
+        `price_max` = (SELECT MAX(price) FROM `product_variants` WHERE product_id = OLD.product_id)
+    WHERE `product_id` = OLD.product_id;
+END$$
+
+DELIMITER ;
+
+-- ============================================================================
+-- SEED DATA
+-- ============================================================================
+
 -- Insert default admin user
 -- Email: admin@example.com
 -- Password: admin123
@@ -99,4 +151,3 @@ VALUES (
   NOW(3)
 )
 ON DUPLICATE KEY UPDATE `email` = `email`;
-

@@ -39,10 +39,11 @@ type Product struct {
 	ProductID    string    `gorm:"primaryKey;type:varchar(36)" json:"product_id"`
 	Name         string    `gorm:"type:varchar(255);not null" json:"name"`
 	Slug         string    `gorm:"uniqueIndex;type:varchar(255);not null" json:"slug"`
-	SKU          string    `gorm:"type:varchar(100);not null" json:"sku"`
+	SKU          string    `gorm:"type:varchar(100)" json:"sku"` // Optional base SKU
 	ShortDesc    string    `gorm:"type:varchar(500)" json:"short_desc"`
 	Description  string    `gorm:"type:text" json:"description"`
-	Price        float64   `gorm:"type:decimal(10,2);not null" json:"price"`
+	PriceMin     *float64  `gorm:"type:decimal(10,2);column:price_min" json:"price_min"` // Min price from variants
+	PriceMax     *float64  `gorm:"type:decimal(10,2);column:price_max" json:"price_max"` // Max price from variants
 	Stock        int       `gorm:"type:int;default:0;not null" json:"stock"`
 	ThumbnailURL string    `gorm:"type:varchar(500)" json:"thumbnail_url"`
 	Gallery      Gallery   `gorm:"type:json" json:"gallery"`

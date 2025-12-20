@@ -35,7 +35,7 @@ type CreateVariantInput struct {
 	SKU        string
 	Name       string
 	Attributes map[string]string
-	Price      *float64
+	Price      float64 // Required for variants
 	Stock      int
 	IsActive   bool
 }
@@ -138,7 +138,7 @@ func (uc *ProductVariantUseCase) Update(ctx context.Context, variantID string, i
 		variant.Attributes = *input.Attributes
 	}
 	if input.Price != nil {
-		variant.Price = input.Price
+		variant.Price = *input.Price
 	}
 	if input.Stock != nil {
 		variant.Stock = *input.Stock

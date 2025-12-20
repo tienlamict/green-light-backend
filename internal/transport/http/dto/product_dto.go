@@ -3,18 +3,17 @@ package dto
 import "green-light-backend/internal/domain"
 
 type CreateProductRequest struct {
-	Name         string                  `json:"name" binding:"required,min=2,max=255"`
-	Slug         string                  `json:"slug" binding:"omitempty,max=255"`
-	SKU          string                  `json:"sku" binding:"omitempty,max=100"` // Optional if using variants
-	ShortDesc    string                  `json:"short_desc" binding:"max=500"`
-	Description  string                  `json:"description"`
-	Price        float64                 `json:"price" binding:"required,gt=0"`
-	Stock        int                     `json:"stock" binding:"gte=0"`
-	ThumbnailURL string                  `json:"thumbnail_url"`
-	Gallery      []string                `json:"gallery"`
-	CategoryID   string                  `json:"category_id" binding:"required"`
-	IsActive     bool                    `json:"is_active"`
-	Variants     []CreateVariantRequest  `json:"variants"` // Optional: create variants with product
+	Name         string                 `json:"name" binding:"required,min=2,max=255"`
+	Slug         string                 `json:"slug" binding:"omitempty,max=255"`
+	SKU          string                 `json:"sku" binding:"omitempty,max=100"` // Optional base SKU
+	ShortDesc    string                 `json:"short_desc" binding:"max=500"`
+	Description  string                 `json:"description"`
+	Stock        int                    `json:"stock" binding:"gte=0"`
+	ThumbnailURL string                 `json:"thumbnail_url"`
+	Gallery      []string               `json:"gallery"`
+	CategoryID   string                 `json:"category_id" binding:"required"`
+	IsActive     bool                   `json:"is_active"`
+	Variants     []CreateVariantRequest `json:"variants" binding:"required,min=1"` // At least 1 variant required
 }
 
 type UpdateProductRequest struct {
@@ -23,7 +22,6 @@ type UpdateProductRequest struct {
 	SKU          *string   `json:"sku" binding:"omitempty,max=100"`
 	ShortDesc    *string   `json:"short_desc" binding:"omitempty,max=500"`
 	Description  *string   `json:"description"`
-	Price        *float64  `json:"price" binding:"omitempty,gt=0"`
 	Stock        *int      `json:"stock" binding:"omitempty,gte=0"`
 	ThumbnailURL *string   `json:"thumbnail_url"`
 	Gallery      *[]string `json:"gallery"`
@@ -38,7 +36,8 @@ type ProductResponse struct {
 	SKU          string            `json:"sku"`
 	ShortDesc    string            `json:"short_desc"`
 	Description  string            `json:"description"`
-	Price        float64           `json:"price"`
+	PriceMin     *float64          `json:"price_min"` // Min price from variants
+	PriceMax     *float64          `json:"price_max"` // Max price from variants
 	Stock        int               `json:"stock"`
 	ThumbnailURL string            `json:"thumbnail_url"`
 	Gallery      []string          `json:"gallery"`
@@ -58,7 +57,8 @@ func ToProductResponse(product *domain.Product) ProductResponse {
 		SKU:          product.SKU,
 		ShortDesc:    product.ShortDesc,
 		Description:  product.Description,
-		Price:        product.Price,
+		PriceMin:     product.PriceMin,
+		PriceMax:     product.PriceMax,
 		Stock:        product.Stock,
 		ThumbnailURL: product.ThumbnailURL,
 		Gallery:      []string(product.Gallery),

@@ -7,7 +7,7 @@ type CreateVariantRequest struct {
 	SKU        string            `json:"sku" binding:"required"`
 	Name       string            `json:"name" binding:"required"`
 	Attributes map[string]string `json:"attributes"`
-	Price      *float64          `json:"price"`
+	Price      float64           `json:"price" binding:"required,gt=0"` // Price is required for variants
 	Stock      int               `json:"stock" binding:"min=0"`
 	IsActive   bool              `json:"is_active"`
 }
@@ -17,7 +17,7 @@ type UpdateVariantRequest struct {
 	SKU        *string            `json:"sku"`
 	Name       *string            `json:"name"`
 	Attributes *map[string]string `json:"attributes"`
-	Price      *float64           `json:"price"`
+	Price      *float64           `json:"price" binding:"omitempty,gt=0"` // Price must be > 0 if provided
 	Stock      *int               `json:"stock" binding:"omitempty,min=0"`
 	IsActive   *bool              `json:"is_active"`
 }
@@ -29,7 +29,7 @@ type VariantResponse struct {
 	SKU        string            `json:"sku"`
 	Name       string            `json:"name"`
 	Attributes map[string]string `json:"attributes"`
-	Price      *float64          `json:"price"`
+	Price      float64           `json:"price"` // Price is always present for variants
 	Stock      int               `json:"stock"`
 	IsActive   bool              `json:"is_active"`
 	CreatedAt  string            `json:"created_at"`

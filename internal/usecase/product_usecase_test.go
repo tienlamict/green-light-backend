@@ -187,30 +187,44 @@ func TestProductUseCase_Create(t *testing.T) {
 	}{
 		{
 			name: "successful create",
-			input: CreateProductInput{
-				Name:        "Test Product",
-				Slug:        "test-product",
-				SKU:         "TEST-001",
-				Description: "Test description",
-				Price:       99.99,
-				Stock:       10,
-				CategoryID:  "test-category-id",
-				IsActive:    true,
+		input: CreateProductInput{
+			Name:        "Test Product",
+			Slug:        "test-product",
+			SKU:         "TEST-001",
+			Description: "Test description",
+			Stock:       10,
+			CategoryID:  "test-category-id",
+			IsActive:    true,
+			Variants: []CreateProductVariantInput{
+				{
+					SKU:   "TEST-001-V1",
+					Name:  "Default Variant",
+					Price: 99.99,
+					Stock: 10,
+				},
 			},
+		},
 			wantErr: false,
 		},
 		{
 			name: "invalid category",
-			input: CreateProductInput{
-				Name:        "Test Product 2",
-				Slug:        "test-product-2",
-				SKU:         "TEST-002",
-				Description: "Test description",
-				Price:       99.99,
-				Stock:       10,
-				CategoryID:  "nonexistent-category",
-				IsActive:    true,
+		input: CreateProductInput{
+			Name:        "Test Product 2",
+			Slug:        "test-product-2",
+			SKU:         "TEST-002",
+			Description: "Test description",
+			Stock:       10,
+			CategoryID:  "nonexistent-category",
+			IsActive:    true,
+			Variants: []CreateProductVariantInput{
+				{
+					SKU:   "TEST-002-V1",
+					Name:  "Default Variant",
+					Price: 99.99,
+					Stock: 10,
+				},
 			},
+		},
 			wantErr: true,
 			errType: ErrCategoryNotFound,
 		},
@@ -250,12 +264,15 @@ func TestProductUseCase_GetByID(t *testing.T) {
 	productUC := NewProductUseCase(mockProdRepo, mockCatRepo, mockVariantRepo)
 
 	// Create test product
+	priceMin := 99.99
+	priceMax := 99.99
 	testProduct := &domain.Product{
 		ProductID:  "test-product-id",
 		Name:       "Test Product",
 		Slug:       "test-product",
 		SKU:        "TEST-001",
-		Price:      99.99,
+		PriceMin:   &priceMin,
+		PriceMax:   &priceMax,
 		Stock:      10,
 		CategoryID: "test-category-id",
 		IsActive:   true,
