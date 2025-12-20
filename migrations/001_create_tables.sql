@@ -28,12 +28,13 @@ CREATE TABLE IF NOT EXISTS `categories` (
   INDEX `idx_categories_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Create products table last (has foreign key to categories)
+-- Create products table (has foreign key to categories)
+-- SKU is nullable because products can use variants instead
 CREATE TABLE IF NOT EXISTS `products` (
   `product_id` VARCHAR(36) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `slug` VARCHAR(255) NOT NULL,
-  `sku` VARCHAR(100) NOT NULL,
+  `sku` VARCHAR(100) NULL COMMENT 'Base SKU (optional if using variants)',
   `short_desc` VARCHAR(500),
   `description` TEXT,
   `price` DECIMAL(10,2) NOT NULL,
@@ -60,6 +61,30 @@ ADD CONSTRAINT `fk_products_category`
   REFERENCES `categories`(`category_id`) 
   ON DELETE CASCADE 
   ON UPDATE CASCADE;
+
+-- Create product_variants table (supports multiple SKUs per product)
+-- Supports variants like color, size, etc.
+CREATE TABLE IF NOT EXISTS `product_variants` (
+  `variant_id` VARCHAR(36) NOT NULL,
+  `product_id` VARCHAR(36) NOT NULL,
+  `sku` VARCHAR(100) NOT NULL,
+  `name` VARCHAR(255) NOT NULL COMMENT 'Variant name: e.g., "Red - Large", "Blue - Small"',
+  `attributes` JSON COMMENT 'Variant attributes: {"color": "red", "size": "L"}',
+  `price` DECIMAL(10,2) COMMENT 'Override product price if different',
+  `stock` INT NOT NULL DEFAULT 0,
+  `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
+  `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`variant_id`),
+  UNIQUE INDEX `idx_variants_sku` (`sku`),
+  INDEX `idx_variants_product_id` (`product_id`),
+  INDEX `idx_variants_is_active` (`is_active`),
+  CONSTRAINT `fk_variants_product`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `products`(`product_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default admin user
 -- Email: admin@example.com
