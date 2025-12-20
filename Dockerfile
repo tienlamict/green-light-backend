@@ -42,9 +42,13 @@ COPY --from=builder /app/scripts ./scripts/
 COPY --from=builder /app/internal ./internal/
 COPY --from=builder /app/pkg ./pkg/
 
-# Copy init script
-COPY docker-init.sh /root/
-RUN chmod +x /root/docker-init.sh
+# Copy init script from builder stage
+COPY --from=builder /app/docker-init.sh /root/docker-init.sh
+# Fix line endings (remove CR) and make executable
+RUN sed -i 's/\r$//' /root/docker-init.sh && \
+    chmod +x /root/docker-init.sh && \
+    ls -la /root/docker-init.sh && \
+    test -f /root/docker-init.sh && echo "✅ docker-init.sh copied successfully"
 
 # Create uploads directory
 RUN mkdir -p /root/uploads

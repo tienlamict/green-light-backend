@@ -84,11 +84,29 @@ func (r *Router) Setup() *gin.Engine {
 		products := v1.Group("/products")
 		{
 			products.GET("", productHandler.List)
+
+			// Public variant routes (MUST be registered BEFORE /:id_or_slug to avoid route conflict)
+			// Use same parameter name as product detail route
+			products.GET("/:id_or_slug/variants", variantHandler.ListByProduct)
+			products.GET("/:id_or_slug/variants/:variant_id", variantHandler.Get)
+
+			// Product detail route (MUST be after variant routes)
 			products.GET("/:id_or_slug", productHandler.Get)
-			
-			// Public variant routes
-			products.GET("/:product_id/variants", variantHandler.ListByProduct)
-			products.GET("/:product_id/variants/:variant_id", variantHandler.Get)
+		}
+
+		// Protected variant routes (MUST be registered BEFORE any /:id_or_slug route)
+		productVariantsProtected := v1.Group("/products")
+		productVariantsProtected.Use(middleware.AuthMiddleware(jwtManager))
+		{
+			productVariantsProtected.POST("/:id_or_slug/variants",
+				middleware.RequireRole("admin", "editor"),
+				variantHandler.Create)
+			productVariantsProtected.PUT("/:id_or_slug/variants/:variant_id",
+				middleware.RequireRole("admin", "editor"),
+				variantHandler.Update)
+			productVariantsProtected.DELETE("/:id_or_slug/variants/:variant_id",
+				middleware.RequireRole("admin"),
+				variantHandler.Delete)
 		}
 
 		// Public variant lookup by SKU
@@ -101,23 +119,12 @@ func (r *Router) Setup() *gin.Engine {
 			productsProtected.POST("",
 				middleware.RequireRole("admin", "editor"),
 				productHandler.Create)
-			productsProtected.PUT("/:id",
+			productsProtected.PUT("/:id_or_slug",
 				middleware.RequireRole("admin", "editor"),
 				productHandler.Update)
-			productsProtected.DELETE("/:id",
+			productsProtected.DELETE("/:id_or_slug",
 				middleware.RequireRole("admin"),
 				productHandler.Delete)
-			
-			// Protected variant routes
-			productsProtected.POST("/:product_id/variants",
-				middleware.RequireRole("admin", "editor"),
-				variantHandler.Create)
-			productsProtected.PUT("/:product_id/variants/:variant_id",
-				middleware.RequireRole("admin", "editor"),
-				variantHandler.Update)
-			productsProtected.DELETE("/:product_id/variants/:variant_id",
-				middleware.RequireRole("admin"),
-				variantHandler.Delete)
 		}
 
 		// Public category routes

@@ -29,7 +29,7 @@ func NewProductVariantHandler(variantUseCase *usecase.ProductVariantUseCase) *Pr
 // @Failure 404 {object} dto.Response
 // @Router /api/v1/products/{product_id}/variants [get]
 func (h *ProductVariantHandler) ListByProduct(c *gin.Context) {
-	productID := c.Param("product_id")
+	productID := c.Param("id_or_slug")
 
 	variants, err := h.variantUseCase.GetByProductID(c.Request.Context(), productID)
 	if err != nil {
@@ -108,7 +108,7 @@ func (h *ProductVariantHandler) GetBySKU(c *gin.Context) {
 // @Failure 403 {object} dto.Response
 // @Router /api/v1/products/{product_id}/variants [post]
 func (h *ProductVariantHandler) Create(c *gin.Context) {
-	productID := c.Param("product_id")
+	productID := c.Param("id_or_slug")
 
 	var req dto.CreateVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -223,4 +223,3 @@ func (h *ProductVariantHandler) Delete(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.SuccessResponse(nil, "Variant deleted"))
 }
-

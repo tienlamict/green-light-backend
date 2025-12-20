@@ -218,7 +218,7 @@ func (h *ProductHandler) Create(c *gin.Context) {
 // @Failure 404 {object} dto.Response
 // @Router /api/v1/products/{id} [put]
 func (h *ProductHandler) Update(c *gin.Context) {
-	productID := c.Param("id")
+	productID := c.Param("id_or_slug")
 
 	var req dto.UpdateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -275,7 +275,7 @@ func (h *ProductHandler) Update(c *gin.Context) {
 // @Failure 404 {object} dto.Response
 // @Router /api/v1/products/{id} [delete]
 func (h *ProductHandler) Delete(c *gin.Context) {
-	productID := c.Param("id")
+	productID := c.Param("id_or_slug")
 
 	err := h.productUseCase.Delete(c.Request.Context(), productID)
 	if err != nil {
