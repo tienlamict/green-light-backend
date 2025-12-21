@@ -134,6 +134,29 @@ END$$
 
 DELIMITER ;
 
+-- Create product_images table (stores image metadata)
+-- Actual images are stored in MinIO
+CREATE TABLE IF NOT EXISTS `product_images` (
+  `image_id` VARCHAR(36) NOT NULL,
+  `product_id` VARCHAR(36) NOT NULL,
+  `url` VARCHAR(500) NOT NULL COMMENT 'Public URL to access the image',
+  `object_key` VARCHAR(500) NOT NULL COMMENT 'MinIO object key',
+  `is_main` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Main product image',
+  `sort_order` INT NOT NULL DEFAULT 0 COMMENT 'Display order',
+  `status` VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT 'TEMP or ACTIVE',
+  `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`image_id`),
+  INDEX `idx_images_product_id` (`product_id`),
+  INDEX `idx_images_status` (`status`),
+  INDEX `idx_images_is_main` (`is_main`),
+  CONSTRAINT `fk_images_product`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `products`(`product_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================================
 -- SEED DATA
 -- ============================================================================

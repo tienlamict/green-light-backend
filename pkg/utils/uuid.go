@@ -12,3 +12,8 @@ func GenerateUUIDv7() string {
 	// In production, consider using: github.com/gofrs/uuid which supports v7
 	return uuid.New().String()
 }
+
+// GenerateUUID generates a UUID v4
+func GenerateUUID() string {
+	return uuid.New().String()
+}
