@@ -91,13 +91,12 @@ func (r *Router) Setup() *gin.Engine {
 			auth.GET("/user-info", middleware.AuthMiddleware(jwtManager), authHandler.GetUserInfo)
 		}
 
-		// Public product routes
+		// Public product routes (GET endpoints are public)
 		products := v1.Group("/products")
 		{
 			products.GET("", productHandler.List)
 
 			// Public variant routes (MUST be registered BEFORE /:id_or_slug to avoid route conflict)
-			// Use same parameter name as product detail route
 			products.GET("/:id_or_slug/variants", variantHandler.ListByProduct)
 			products.GET("/:id_or_slug/variants/:variant_id", variantHandler.Get)
 
@@ -108,7 +107,22 @@ func (r *Router) Setup() *gin.Engine {
 			products.GET("/:id_or_slug", productHandler.Get)
 		}
 
-		// Protected variant routes (MUST be registered BEFORE any /:id_or_slug route)
+		// Protected product routes (POST/PUT/DELETE require authentication and role)
+		productsProtected := v1.Group("/products")
+		productsProtected.Use(middleware.AuthMiddleware(jwtManager))
+		{
+			productsProtected.POST("",
+				middleware.RequireRole("admin", "editor"),
+				productHandler.Create)
+			productsProtected.PUT("/:id_or_slug",
+				middleware.RequireRole("admin", "editor"),
+				productHandler.Update)
+			productsProtected.DELETE("/:id_or_slug",
+				middleware.RequireRole("admin"),
+				productHandler.Delete)
+		}
+
+		// Protected variant routes for POST/PUT/DELETE (MUST be registered BEFORE any /:id_or_slug route)
 		productVariantsProtected := v1.Group("/products")
 		productVariantsProtected.Use(middleware.AuthMiddleware(jwtManager))
 		{
@@ -122,7 +136,7 @@ func (r *Router) Setup() *gin.Engine {
 				middleware.RequireRole("admin"),
 				variantHandler.Delete)
 
-			// Protected image routes
+			// Protected image routes for POST/PATCH/DELETE
 			productVariantsProtected.POST("/:id_or_slug/images/presign",
 				middleware.RequireRole("admin", "editor"),
 				imageHandler.GeneratePresignedURL)
@@ -140,29 +154,14 @@ func (r *Router) Setup() *gin.Engine {
 		// Public variant lookup by SKU
 		v1.GET("/variants/sku/:sku", variantHandler.GetBySKU)
 
-		// Protected product routes
-		productsProtected := v1.Group("/products")
-		productsProtected.Use(middleware.AuthMiddleware(jwtManager))
-		{
-			productsProtected.POST("",
-				middleware.RequireRole("admin", "editor"),
-				productHandler.Create)
-			productsProtected.PUT("/:id_or_slug",
-				middleware.RequireRole("admin", "editor"),
-				productHandler.Update)
-			productsProtected.DELETE("/:id_or_slug",
-				middleware.RequireRole("admin"),
-				productHandler.Delete)
-		}
-
-		// Public category routes
+		// Public category routes (GET endpoints are public)
 		categories := v1.Group("/categories")
 		{
 			categories.GET("", categoryHandler.List)
 			categories.GET("/:id_or_slug", categoryHandler.Get)
 		}
 
-		// Protected category routes
+		// Protected category routes (POST/PUT/DELETE require authentication and role)
 		categoriesProtected := v1.Group("/categories")
 		categoriesProtected.Use(middleware.AuthMiddleware(jwtManager))
 		{

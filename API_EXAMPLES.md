@@ -1,5 +1,42 @@
 # API Examples - Product Variants & MinIO Image Upload
 
+## 🔐 Authentication
+
+**Lưu ý về Authentication:**
+- ✅ **GET endpoints là PUBLIC** - Không cần authentication
+- 🔒 **POST/PUT/DELETE endpoints yêu cầu authentication** - Cần Bearer token và role (admin/editor)
+
+Để lấy token cho các protected endpoints, gọi API login:
+```bash
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "your_password"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "user_id": "a628f74e-6a75-4bc8-a287-51264a87b6fd",
+      "email": "admin@example.com",
+      "role": "admin"
+    }
+  }
+}
+```
+
+Sau đó sử dụng token này trong header `Authorization: Bearer <token>` cho các POST/PUT/DELETE requests.
+
+---
+
 ## 📦 Tạo Product với Variants (Pricing Model: Min-Max)
 
 ### ⚠️ Lưu ý quan trọng về Pricing Model
@@ -496,7 +533,166 @@ GET /api/v1/variants/sku/TSHIRT-RED-L
 }
 ```
 
-### 11. Lấy product kèm variants và images
+### 11. List Products với Filters
+
+#### 11.1. List tất cả products (có pagination)
+
+```bash
+GET /api/v1/products?page=1&limit=10
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Products retrieved successfully",
+  "data": [
+    {
+      "product_id": "018f1234-5678-7890-abcd-ef1234567890",
+      "name": "Cotton T-Shirt",
+      "slug": "cotton-t-shirt",
+      "price_min": 29.99,
+      "price_max": 31.99,
+      "stock": 83,
+      "category_id": "9d1351ee-7e24-4d43-bacd-fa87b9acbfa8",
+      "category": {
+        "category_id": "9d1351ee-7e24-4d43-bacd-fa87b9acbfa8",
+        "name": "Clothing",
+        "slug": "clothing"
+      },
+      "is_active": true,
+      "created_at": "2024-12-21T10:00:00Z"
+    }
+    // ... more products
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "total_pages": 3
+  }
+}
+```
+
+#### 11.2. List products theo Category ID
+
+```bash
+GET /api/v1/products?category=9d1351ee-7e24-4d43-bacd-fa87b9acbfa8&page=1&limit=20
+```
+
+**Query Parameters:**
+- `category` (string, optional): Filter theo category ID
+- `page` (int, optional): Số trang (default: 1)
+- `limit` (int, optional): Số items mỗi trang (default: 10)
+
+**Response:** Tương tự như trên, nhưng chỉ trả về products thuộc category đó.
+
+#### 11.3. List products với Search
+
+```bash
+GET /api/v1/products?q=led&page=1&limit=10
+```
+
+**Query Parameters:**
+- `q` (string, optional): Search theo name, description, hoặc SKU
+
+**Response:** Trả về products có chứa từ khóa "led" trong name, description, hoặc SKU.
+
+#### 11.4. List products với Price Range
+
+```bash
+GET /api/v1/products?min_price=20&max_price=50&page=1&limit=10
+```
+
+**Query Parameters:**
+- `min_price` (number, optional): Giá tối thiểu (price_min >= min_price)
+- `max_price` (number, optional): Giá tối đa (price_max <= max_price)
+
+**Response:** Trả về products có price_min >= 20 và price_max <= 50.
+
+#### 11.5. List products Active Only
+
+```bash
+GET /api/v1/products?is_active=true&page=1&limit=10
+```
+
+**Query Parameters:**
+- `is_active` (boolean, optional): Filter theo trạng thái active
+
+#### 11.6. List products với Sort
+
+```bash
+GET /api/v1/products?sort=price_min ASC&page=1&limit=10
+```
+
+**Query Parameters:**
+- `sort` (string, optional): Sort order (default: "created_at DESC")
+  - `created_at DESC` - Mới nhất trước
+  - `created_at ASC` - Cũ nhất trước
+  - `price_min ASC` - Giá thấp nhất trước
+  - `price_min DESC` - Giá cao nhất trước
+  - `name ASC` - Tên A-Z
+  - `name DESC` - Tên Z-A
+
+#### 11.7. List products với Multiple Filters
+
+```bash
+GET /api/v1/products?category=9d1351ee-7e24-4d43-bacd-fa87b9acbfa8&min_price=25&max_price=100&is_active=true&q=shirt&sort=price_min ASC&page=1&limit=20
+```
+
+**Ví dụ đầy đủ với tất cả filters:**
+
+```bash
+curl --location 'http://localhost:8080/api/v1/products?category=9d1351ee-7e24-4d43-bacd-fa87b9acbfa8&min_price=25&max_price=100&is_active=true&q=shirt&sort=price_min%20ASC&page=1&limit=20'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Products retrieved successfully",
+  "data": [
+    {
+      "product_id": "018f1234-5678-7890-abcd-ef1234567890",
+      "name": "Cotton T-Shirt",
+      "slug": "cotton-t-shirt",
+      "price_min": 29.99,
+      "price_max": 31.99,
+      "stock": 83,
+      "category_id": "9d1351ee-7e24-4d43-bacd-fa87b9acbfa8",
+      "category": {
+        "category_id": "9d1351ee-7e24-4d43-bacd-fa87b9acbfa8",
+        "name": "Clothing",
+        "slug": "clothing",
+        "description": "Clothing and apparel",
+        "is_active": true
+      },
+      "is_active": true,
+      "created_at": "2024-12-21T10:00:00Z",
+      "updated_at": "2024-12-21T10:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "total_pages": 1
+  }
+}
+```
+
+**Lưu ý:**
+- ✅ **GET endpoints là PUBLIC** - Không cần authentication
+- Tất cả query parameters đều optional
+- Có thể kết hợp nhiều filters cùng lúc
+- Response không bao gồm variants và images (phải gọi endpoint riêng)
+- Category được include trong response nếu có
+
+---
+
+### 12. Lấy product kèm variants và images
 
 ```bash
 GET /api/v1/products/{product_id}
@@ -562,7 +758,7 @@ GET /api/v1/products/{product_id}/images
 
 ## 📱 Ví dụ khác
 
-### 12. Điện thoại với nhiều dung lượng
+### 13. Điện thoại với nhiều dung lượng
 
 ```json
 {
