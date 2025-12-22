@@ -5,10 +5,10 @@ import "green-light-backend/internal/domain"
 type CreateProductRequest struct {
 	Name         string                 `json:"name" binding:"required,min=2,max=255"`
 	Slug         string                 `json:"slug" binding:"omitempty,max=255"`
-	SKU          string                 `json:"sku" binding:"omitempty,max=100"` // Optional base SKU
+	SKU          *string                `json:"sku" binding:"omitempty,max=100"` // Optional base SKU (nullable)
 	ShortDesc    string                 `json:"short_desc" binding:"max=500"`
 	Description  string                 `json:"description"`
-	Stock        int                    `json:"stock" binding:"gte=0"`
+	Stock        *int                   `json:"stock" binding:"omitempty,gte=0"` // Optional, defaults to 0 if null
 	ThumbnailURL string                 `json:"thumbnail_url"`
 	Gallery      []string               `json:"gallery"`
 	CategoryID   string                 `json:"category_id" binding:"required"`
@@ -50,6 +50,11 @@ type ProductResponse struct {
 }
 
 func ToProductResponse(product *domain.Product) ProductResponse {
+	if product == nil {
+		// Return empty response if product is nil
+		return ProductResponse{}
+	}
+	
 	response := ProductResponse{
 		ProductID:    product.ProductID,
 		Name:         product.Name,

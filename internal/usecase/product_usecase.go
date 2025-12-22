@@ -5,6 +5,7 @@ import (
 	"errors"
 	"green-light-backend/internal/domain"
 	"green-light-backend/pkg/utils"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -84,11 +85,14 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 	// Check if slug already exists
 	_, err = uc.productRepo.GetBySlug(ctx, slug)
 	if err == nil {
+		// Slug already exists
 		return nil, ErrProductSlugExists
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		// Unexpected error
 		return nil, err
 	}
+	// Slug doesn't exist (ErrRecordNotFound) - OK to continue
 
 	gallery := domain.Gallery(input.Gallery)
 	if gallery == nil {
@@ -120,6 +124,19 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 	}
 
 	for _, variantInput := range input.Variants {
+		// Check if SKU already exists
+		existingVariant, err := uc.variantRepo.GetBySKU(ctx, variantInput.SKU)
+		if err == nil && existingVariant != nil {
+			// Rollback: delete product if SKU already exists
+			_ = uc.productRepo.Delete(ctx, product.ProductID)
+			return nil, errors.New("variant SKU already exists: " + variantInput.SKU)
+		}
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			// Rollback: delete product on unexpected error
+			_ = uc.productRepo.Delete(ctx, product.ProductID)
+			return nil, err
+		}
+
 		variant := &domain.ProductVariant{
 			VariantID:  utils.GenerateUUIDv7(),
 			ProductID:  product.ProductID,
@@ -133,12 +150,22 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 		if err := uc.variantRepo.Create(ctx, variant); err != nil {
 			// Rollback: delete product if variant creation fails
 			_ = uc.productRepo.Delete(ctx, product.ProductID)
+			// Check if it's a duplicate key error
+			errMsg := err.Error()
+			if strings.Contains(errMsg, "Duplicate entry") || strings.Contains(errMsg, "duplicate key") || strings.Contains(errMsg, "UNIQUE constraint") {
+				return nil, errors.New("variant SKU already exists: " + variantInput.SKU)
+			}
 			return nil, err
 		}
 	}
 
-	// Reload to get category relationship
-	return uc.productRepo.GetByID(ctx, product.ProductID)
+	// Reload product without Preload to avoid relationship issues
+	// Category will be loaded manually if needed in handler
+	reloadedProduct, err := uc.productRepo.GetByID(ctx, product.ProductID)
+	if err != nil {
+		return nil, err
+	}
+	return reloadedProduct, nil
 }
 
 func (uc *ProductUseCase) GetByID(ctx context.Context, productID string) (*domain.Product, error) {

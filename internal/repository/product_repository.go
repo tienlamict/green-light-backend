@@ -22,11 +22,17 @@ func (r *productRepository) Create(ctx context.Context, product *domain.Product)
 func (r *productRepository) GetByID(ctx context.Context, productID string) (*domain.Product, error) {
 	var product domain.Product
 	err := r.db.WithContext(ctx).
-		Preload("Category").
 		Where("product_id = ?", productID).
 		First(&product).Error
 	if err != nil {
 		return nil, err
+	}
+	// Load Category manually since it has gorm:"-" tag
+	if product.CategoryID != "" {
+		var category domain.Category
+		if err := r.db.WithContext(ctx).Where("category_id = ?", product.CategoryID).First(&category).Error; err == nil {
+			product.Category = &category
+		}
 	}
 	return &product, nil
 }
@@ -34,11 +40,17 @@ func (r *productRepository) GetByID(ctx context.Context, productID string) (*dom
 func (r *productRepository) GetBySlug(ctx context.Context, slug string) (*domain.Product, error) {
 	var product domain.Product
 	err := r.db.WithContext(ctx).
-		Preload("Category").
 		Where("slug = ?", slug).
 		First(&product).Error
 	if err != nil {
 		return nil, err
+	}
+	// Load Category manually since it has gorm:"-" tag
+	if product.CategoryID != "" {
+		var category domain.Category
+		if err := r.db.WithContext(ctx).Where("category_id = ?", product.CategoryID).First(&category).Error; err == nil {
+			product.Category = &category
+		}
 	}
 	return &product, nil
 }
@@ -55,7 +67,7 @@ func (r *productRepository) List(ctx context.Context, filter domain.ProductFilte
 	var products []*domain.Product
 	var total int64
 
-	query := r.db.WithContext(ctx).Model(&domain.Product{}).Preload("Category")
+	query := r.db.WithContext(ctx).Model(&domain.Product{})
 
 	// Apply filters
 	if filter.CategoryID != "" {
@@ -101,5 +113,34 @@ func (r *productRepository) List(ctx context.Context, filter domain.ProductFilte
 	}
 
 	err := query.Find(&products).Error
-	return products, total, err
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	// Load Categories manually for all products since it has gorm:"-" tag
+	if len(products) > 0 {
+		categoryIDs := make([]string, 0, len(products))
+		categoryMap := make(map[string]*domain.Category)
+		for _, p := range products {
+			if p.CategoryID != "" {
+				categoryIDs = append(categoryIDs, p.CategoryID)
+			}
+		}
+		if len(categoryIDs) > 0 {
+			var categories []domain.Category
+			if err := r.db.WithContext(ctx).Where("category_id IN ?", categoryIDs).Find(&categories).Error; err == nil {
+				for i := range categories {
+					categoryMap[categories[i].CategoryID] = &categories[i]
+				}
+				// Assign categories to products
+				for _, p := range products {
+					if cat, ok := categoryMap[p.CategoryID]; ok {
+						p.Category = cat
+					}
+				}
+			}
+		}
+	}
+	
+	return products, total, nil
 }

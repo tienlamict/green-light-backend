@@ -1,13 +1,18 @@
 package handler
 
 import (
+	"errors"
+	"fmt"
 	"green-light-backend/internal/domain"
 	"green-light-backend/internal/transport/http/dto"
 	"green-light-backend/internal/usecase"
+	"green-light-backend/pkg/logger"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -145,7 +150,11 @@ func (h *ProductHandler) Get(c *gin.Context) {
 func (h *ProductHandler) Create(c *gin.Context) {
 	var req dto.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+		logger.Log.Error("Validation error when creating product",
+			zap.Error(err),
+			zap.Any("request_body", req),
+		)
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse("Validation error: "+err.Error()))
 		return
 	}
 
@@ -162,13 +171,23 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		}
 	}
 
+	// Handle nullable fields
+	stock := 0
+	if req.Stock != nil {
+		stock = *req.Stock
+	}
+	sku := ""
+	if req.SKU != nil && *req.SKU != "" {
+		sku = *req.SKU
+	}
+
 	input := usecase.CreateProductInput{
 		Name:         req.Name,
 		Slug:         req.Slug,
-		SKU:          req.SKU,
+		SKU:          sku,
 		ShortDesc:    req.ShortDesc,
 		Description:  req.Description,
-		Stock:        req.Stock,
+		Stock:        stock,
 		ThumbnailURL: req.ThumbnailURL,
 		Gallery:      req.Gallery,
 		CategoryID:   req.CategoryID,
@@ -176,17 +195,46 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		Variants:     variants,
 	}
 
+	logger.Log.Info("Creating product",
+		zap.String("product_name", req.Name),
+		zap.String("category_id", req.CategoryID),
+		zap.String("slug", req.Slug),
+		zap.Int("variants_count", len(variants)),
+	)
+
 	product, err := h.productUseCase.Create(c.Request.Context(), input)
 	if err != nil {
-		if err == usecase.ErrProductSlugExists {
+		logger.Log.Error("Failed to create product",
+			zap.Error(err),
+			zap.String("product_name", req.Name),
+			zap.String("category_id", req.CategoryID),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.String("error_message", err.Error()),
+		)
+		if errors.Is(err, usecase.ErrProductSlugExists) {
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 			return
 		}
-		if err == usecase.ErrCategoryNotFound {
+		if errors.Is(err, usecase.ErrCategoryNotFound) {
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("Failed to create product"))
+		// Check for SKU duplicate error (check error message contains "variant SKU already exists")
+		errMsg := err.Error()
+		if errMsg != "" && (errors.Is(err, usecase.ErrVariantSKUExists) || 
+			strings.Contains(errMsg, "variant SKU already exists")) {
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+			return
+		}
+		// Return detailed error message for debugging
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("Failed to create product: "+err.Error()))
+		return
+	}
+
+	// Check if product is nil (should not happen, but safety check)
+	if product == nil {
+		logger.Log.Error("Product is nil after creation")
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse("Failed to create product: product is nil"))
 		return
 	}
 
