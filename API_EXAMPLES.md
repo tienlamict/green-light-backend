@@ -849,3 +849,43 @@ GET /api/v1/products/{product_id}/images
 - [MinIO Quick Start](docs/MINIO_QUICK_START.md) - Test scripts
 - [Product Variants Guide](PRODUCT_VARIANTS_GUIDE.md) - Chi tiết về variants
 - [API Examples MinIO](API_EXAMPLES_MINIO.md) - Ví dụ upload ảnh đầy đủ
+
+curl --location 'http://localhost:8080/api/v1/products' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYTYyOGY3NGUtNmE3NS00YmM4LWEyODctNTEyNjRhODdiNmZkIiwiZW1haWwiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc2NjQ3MDE3MCwibmJmIjoxNzY2NDY2NTcwLCJpYXQiOjE3NjY0NjY1NzB9.CMm1xvB-WHm3iz-IchoL9UohBLxAZyPc2idTWd7IT80' \
+--header 'Content-Type: application/json' \
+--data '{
+    "name": "Đèn LED âm trần Diamond",
+    "slug": "den-led-am-tran-diamond",
+    "sku": null,
+    "short_desc": "Giải pháp chiếu sáng sang trọng, nổi bật không gian",
+    "description": "Đèn LED âm trần Diamond là dòng sản phẩm cao cấp của Kingled, nổi bật với thiết kế viền ánh kim độc đáo và mặt đèn dạng pha lê hoặc phản quang sâu. Đây là lựa chọn lý tưởng cho những không gian đòi hỏi tính thẩm mỹ cao như biệt thự, khách sạn, showroom, sảnh đón hay khu vực trưng bày nghệ thuật. Diamond không chỉ chiếu sáng hiệu quả mà còn trở thành điểm nhấn sang trọng cho trần nhà.",
+    "stock": 0,
+    "thumbnail_url": "http://localhost:9000/greenlight/products/2024/12/prod-123/main.webp",
+    "gallery": [],
+    "category_id": "3719d15a-3478-4300-95ea-1cfb4d24a203",
+    "is_active": true,
+    "variants": [
+        {
+            "sku": "DDL-10SS-T120-DM",
+            "name": "DDL-10SS-T120-DM",
+            "attributes": {
+                "color": "red",
+                "size": "S"
+            },
+            "price": 150.000,
+            "stock": 10,
+            "is_active": true
+        },
+        {
+            "sku": "DDL-10SS-T120-T",
+            "name": "DDL-10SS-T120-T",
+            "attributes": {
+                "color": "red",
+                "size": "M"
+            },
+            "price": 200.000,
+            "stock": 15,
+            "is_active": true
+        }
+    ]
+}'
