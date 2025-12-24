@@ -86,8 +86,18 @@ func (h *ProductHandler) List(c *gin.Context) {
 		return
 	}
 
+	// Convert products to response and add variants for each product
+	productResponses := dto.ToProductListResponse(products)
+	for i, product := range products {
+		// Get variants for each product
+		variants, err := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
+		if err == nil && len(variants) > 0 {
+			productResponses[i].Variants = dto.ToVariantListResponse(variants)
+		}
+	}
+
 	c.JSON(http.StatusOK, dto.PaginatedSuccessResponse(
-		dto.ToProductListResponse(products),
+		productResponses,
 		total,
 		page,
 		limit,
@@ -304,7 +314,15 @@ func (h *ProductHandler) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessResponse(dto.ToProductResponse(product), "Product updated"))
+	// Get variants for response
+	variants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
+	
+	response := dto.ToProductResponse(product)
+	if len(variants) > 0 {
+		response.Variants = dto.ToVariantListResponse(variants)
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product updated"))
 }
 
 // Delete godoc
