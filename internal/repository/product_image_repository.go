@@ -35,11 +35,38 @@ func (r *productImageRepository) GetByID(ctx context.Context, imageID string) (*
 	return &image, nil
 }
 
+// GetByProductID returns product-level images only (variant_id IS NULL)
 func (r *productImageRepository) GetByProductID(ctx context.Context, productID string) ([]*domain.ProductImage, error) {
 	var images []*domain.ProductImage
 	err := r.db.WithContext(ctx).
-		Where("product_id = ? AND status = ?", productID, "ACTIVE").
+		Where("product_id = ? AND variant_id IS NULL AND status = ?", productID, "ACTIVE").
 		Order("is_main DESC, sort_order ASC, created_at ASC").
+		Find(&images).Error
+	if err != nil {
+		return nil, err
+	}
+	return images, nil
+}
+
+// GetByVariantID returns images for a specific variant
+func (r *productImageRepository) GetByVariantID(ctx context.Context, variantID string) ([]*domain.ProductImage, error) {
+	var images []*domain.ProductImage
+	err := r.db.WithContext(ctx).
+		Where("variant_id = ? AND status = ?", variantID, "ACTIVE").
+		Order("is_main DESC, sort_order ASC, created_at ASC").
+		Find(&images).Error
+	if err != nil {
+		return nil, err
+	}
+	return images, nil
+}
+
+// GetAllImagesByProductID returns all images for a product (including all variants)
+func (r *productImageRepository) GetAllImagesByProductID(ctx context.Context, productID string) ([]*domain.ProductImage, error) {
+	var images []*domain.ProductImage
+	err := r.db.WithContext(ctx).
+		Where("product_id = ? AND status = ?", productID, "ACTIVE").
+		Order("variant_id IS NULL DESC, is_main DESC, sort_order ASC, created_at ASC").
 		Find(&images).Error
 	if err != nil {
 		return nil, err

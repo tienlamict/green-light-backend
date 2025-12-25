@@ -70,7 +70,7 @@ func (r *Router) Setup() *gin.Engine {
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authUseCase)
 	categoryHandler := handler.NewCategoryHandler(categoryUseCase)
-	productHandler := handler.NewProductHandler(productUseCase, variantUseCase)
+	productHandler := handler.NewProductHandler(productUseCase, variantUseCase, imageRepo)
 	variantHandler := handler.NewProductVariantHandler(variantUseCase)
 	imageHandler := handler.NewProductImageHandler(imageUseCase)
 	uploadHandler := handler.NewUploadHandler(r.cfg.Upload.Dir, r.cfg.Upload.MaxFileSize)

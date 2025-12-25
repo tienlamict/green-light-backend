@@ -19,13 +19,33 @@ import (
 type ProductHandler struct {
 	productUseCase *usecase.ProductUseCase
 	variantUseCase *usecase.ProductVariantUseCase
+	imageRepo      domain.ProductImageRepository
 }
 
-func NewProductHandler(productUseCase *usecase.ProductUseCase, variantUseCase *usecase.ProductVariantUseCase) *ProductHandler {
+func NewProductHandler(productUseCase *usecase.ProductUseCase, variantUseCase *usecase.ProductVariantUseCase, imageRepo domain.ProductImageRepository) *ProductHandler {
 	return &ProductHandler{
 		productUseCase: productUseCase,
 		variantUseCase: variantUseCase,
+		imageRepo:      imageRepo,
 	}
+}
+
+// loadVariantsWithImages loads variants for a product and their images
+func (h *ProductHandler) loadVariantsWithImages(c *gin.Context, productID string) []dto.VariantResponse {
+	variants, err := h.variantUseCase.GetByProductID(c.Request.Context(), productID)
+	if err != nil || len(variants) == 0 {
+		return []dto.VariantResponse{}
+	}
+
+	// Load images for each variant
+	for _, variant := range variants {
+		images, err := h.imageRepo.GetByVariantID(c.Request.Context(), variant.VariantID)
+		if err == nil && len(images) > 0 {
+			variant.Images = images
+		}
+	}
+
+	return dto.ToVariantListResponse(variants)
 }
 
 // List godoc
@@ -86,14 +106,10 @@ func (h *ProductHandler) List(c *gin.Context) {
 		return
 	}
 
-	// Convert products to response and add variants for each product
+	// Convert products to response and add variants with images for each product
 	productResponses := dto.ToProductListResponse(products)
 	for i, product := range products {
-		// Get variants for each product
-		variants, err := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
-		if err == nil && len(variants) > 0 {
-			productResponses[i].Variants = dto.ToVariantListResponse(variants)
-		}
+		productResponses[i].Variants = h.loadVariantsWithImages(c, product.ProductID)
 	}
 
 	c.JSON(http.StatusOK, dto.PaginatedSuccessResponse(
@@ -133,13 +149,9 @@ func (h *ProductHandler) Get(c *gin.Context) {
 		return
 	}
 
-	// Get variants for this product
-	variants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
-
+	// Get variants with images for this product
 	response := dto.ToProductResponse(product)
-	if len(variants) > 0 {
-		response.Variants = dto.ToVariantListResponse(variants)
-	}
+	response.Variants = h.loadVariantsWithImages(c, product.ProductID)
 
 	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product retrieved"))
 }
@@ -248,13 +260,9 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// Get variants for response
-	fetchedVariants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
-
+	// Get variants with images for response
 	response := dto.ToProductResponse(product)
-	if len(fetchedVariants) > 0 {
-		response.Variants = dto.ToVariantListResponse(fetchedVariants)
-	}
+	response.Variants = h.loadVariantsWithImages(c, product.ProductID)
 
 	c.JSON(http.StatusCreated, dto.SuccessResponse(response, "Product created"))
 }
@@ -314,13 +322,9 @@ func (h *ProductHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// Get variants for response
-	variants, _ := h.variantUseCase.GetByProductID(c.Request.Context(), product.ProductID)
-	
+	// Get variants with images for response
 	response := dto.ToProductResponse(product)
-	if len(variants) > 0 {
-		response.Variants = dto.ToVariantListResponse(variants)
-	}
+	response.Variants = h.loadVariantsWithImages(c, product.ProductID)
 
 	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product updated"))
 }

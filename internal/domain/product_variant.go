@@ -48,7 +48,8 @@ type ProductVariant struct {
 	UpdatedAt  time.Time         `gorm:"autoUpdateTime" json:"updated_at"`
 
 	// Relationships
-	Product *Product `gorm:"foreignKey:ProductID;references:ProductID" json:"product,omitempty"`
+	Product *Product        `gorm:"foreignKey:ProductID;references:ProductID" json:"product,omitempty"`
+	Images  []*ProductImage `gorm:"foreignKey:VariantID;references:VariantID" json:"images,omitempty"` // Variant-specific images
 }
 
 func (ProductVariant) TableName() string {
