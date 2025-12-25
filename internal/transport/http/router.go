@@ -11,8 +11,6 @@ import (
 	"green-light-backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -77,9 +75,6 @@ func (r *Router) Setup() *gin.Engine {
 
 	// Health check
 	r.engine.GET("/healthz", healthHandler.HealthCheck)
-
-	// Swagger documentation
-	r.engine.GET("/api/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API v1 routes
 	v1 := r.engine.Group("/api/v1")

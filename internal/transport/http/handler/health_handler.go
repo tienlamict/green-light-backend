@@ -13,14 +13,7 @@ func NewHealthHandler() *HealthHandler {
 	return &HealthHandler{}
 }
 
-// HealthCheck godoc
-// @Summary Health check
-// @Description Check if the API is running
-// @Tags health
-// @Accept json
-// @Produce json
-// @Success 200 {object} dto.Response
-// @Router /healthz [get]
+// HealthCheck returns the health status of the API
 func (h *HealthHandler) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(map[string]string{
 		"status": "ok",

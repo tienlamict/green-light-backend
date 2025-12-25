@@ -48,22 +48,7 @@ func (h *ProductHandler) loadVariantsWithImages(c *gin.Context, productID string
 	return dto.ToVariantListResponse(variants)
 }
 
-// List godoc
-// @Summary List products
-// @Description Get a list of products with optional filters
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param limit query int false "Items per page" default(10)
-// @Param q query string false "Search by name, description, or SKU"
-// @Param category query string false "Filter by category ID"
-// @Param min_price query number false "Minimum price"
-// @Param max_price query number false "Maximum price"
-// @Param is_active query bool false "Filter by active status"
-// @Param sort query string false "Sort order" default(created_at DESC)
-// @Success 200 {object} dto.PaginatedResponse{data=[]dto.ProductResponse}
-// @Router /api/v1/products [get]
+// List returns a paginated list of products with optional filters
 func (h *ProductHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
@@ -120,16 +105,7 @@ func (h *ProductHandler) List(c *gin.Context) {
 	))
 }
 
-// Get godoc
-// @Summary Get product
-// @Description Get product by ID or slug
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param id_or_slug path string true "Product ID or slug"
-// @Success 200 {object} dto.Response{data=dto.ProductResponse}
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{id_or_slug} [get]
+// Get returns a product by ID or slug
 func (h *ProductHandler) Get(c *gin.Context) {
 	idOrSlug := c.Param("id_or_slug")
 
@@ -156,19 +132,7 @@ func (h *ProductHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product retrieved"))
 }
 
-// Create godoc
-// @Summary Create product
-// @Description Create a new product (admin/editor only)
-// @Tags products
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param request body dto.CreateProductRequest true "Product data"
-// @Success 201 {object} dto.Response{data=dto.ProductResponse}
-// @Failure 400 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Failure 403 {object} dto.Response
-// @Router /api/v1/products [post]
+// Create creates a new product (admin/editor only)
 func (h *ProductHandler) Create(c *gin.Context) {
 	var req dto.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -267,21 +231,7 @@ func (h *ProductHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.SuccessResponse(response, "Product created"))
 }
 
-// Update godoc
-// @Summary Update product
-// @Description Update an existing product (admin/editor only)
-// @Tags products
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Product ID"
-// @Param request body dto.UpdateProductRequest true "Product data"
-// @Success 200 {object} dto.Response{data=dto.ProductResponse}
-// @Failure 400 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Failure 403 {object} dto.Response
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{id} [put]
+// Update updates an existing product (admin/editor only)
 func (h *ProductHandler) Update(c *gin.Context) {
 	productID := c.Param("id_or_slug")
 
@@ -329,19 +279,7 @@ func (h *ProductHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product updated"))
 }
 
-// Delete godoc
-// @Summary Delete product
-// @Description Delete a product (admin only)
-// @Tags products
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Product ID"
-// @Success 200 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Failure 403 {object} dto.Response
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{id} [delete]
+// Delete deletes a product (admin only)
 func (h *ProductHandler) Delete(c *gin.Context) {
 	productID := c.Param("id_or_slug")
 

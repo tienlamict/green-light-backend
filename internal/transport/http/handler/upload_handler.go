@@ -25,18 +25,7 @@ func NewUploadHandler(uploadDir string, maxFileSize int64) *UploadHandler {
 	}
 }
 
-// Upload godoc
-// @Summary Upload file
-// @Description Upload an image file
-// @Tags uploads
-// @Accept multipart/form-data
-// @Produce json
-// @Security BearerAuth
-// @Param file formData file true "Image file"
-// @Success 200 {object} dto.Response{data=map[string]string}
-// @Failure 400 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Router /api/v1/uploads [post]
+// Upload handles file upload (admin/editor only)
 func (h *UploadHandler) Upload(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {

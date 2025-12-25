@@ -1,4 +1,4 @@
-.PHONY: help dev build run migrate seed test test-unit test-int docker-build docker-up docker-down clean swagger
+.PHONY: help dev build run migrate seed test test-unit test-int docker-build docker-up docker-down clean
 
 # Variables
 APP_NAME=greenlight-api
@@ -46,12 +46,6 @@ test-unit: ## Run unit tests only
 test-int: ## Run integration tests only
 	@echo "Running integration tests..."
 	@go test -v -race -run Integration ./...
-
-swagger: ## Generate Swagger documentation
-	@echo "Generating Swagger documentation..."
-	@which swag > /dev/null || (echo "Installing swag..." && go install github.com/swaggo/swag/cmd/swag@latest)
-	@swag init -g cmd/api/main.go -o docs
-	@echo "Swagger documentation generated in docs/"
 
 docker-build: ## Build Docker image
 	@echo "Building Docker image..."
@@ -118,7 +112,6 @@ lint: ## Run linter
 
 install-tools: ## Install development tools
 	@echo "Installing development tools..."
-	@go install github.com/swaggo/swag/cmd/swag@latest
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@echo "Tools installed successfully"
 

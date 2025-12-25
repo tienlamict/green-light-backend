@@ -18,16 +18,7 @@ func NewProductVariantHandler(variantUseCase *usecase.ProductVariantUseCase) *Pr
 	}
 }
 
-// ListByProduct godoc
-// @Summary List product variants
-// @Description Get all variants for a specific product
-// @Tags product-variants
-// @Accept json
-// @Produce json
-// @Param product_id path string true "Product ID"
-// @Success 200 {object} dto.Response{data=[]dto.VariantResponse}
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{product_id}/variants [get]
+// ListByProduct returns all variants for a specific product
 func (h *ProductVariantHandler) ListByProduct(c *gin.Context) {
 	productID := c.Param("id_or_slug")
 
@@ -40,17 +31,7 @@ func (h *ProductVariantHandler) ListByProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(dto.ToVariantListResponse(variants), "Variants retrieved"))
 }
 
-// Get godoc
-// @Summary Get variant
-// @Description Get variant by ID
-// @Tags product-variants
-// @Accept json
-// @Produce json
-// @Param product_id path string true "Product ID"
-// @Param variant_id path string true "Variant ID"
-// @Success 200 {object} dto.Response{data=dto.VariantResponse}
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{product_id}/variants/{variant_id} [get]
+// Get returns a variant by ID
 func (h *ProductVariantHandler) Get(c *gin.Context) {
 	variantID := c.Param("variant_id")
 
@@ -67,16 +48,7 @@ func (h *ProductVariantHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(dto.ToVariantResponse(variant), "Variant retrieved"))
 }
 
-// GetBySKU godoc
-// @Summary Get variant by SKU
-// @Description Get variant by SKU
-// @Tags product-variants
-// @Accept json
-// @Produce json
-// @Param sku path string true "Variant SKU"
-// @Success 200 {object} dto.Response{data=dto.VariantResponse}
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/variants/sku/{sku} [get]
+// GetBySKU returns a variant by SKU
 func (h *ProductVariantHandler) GetBySKU(c *gin.Context) {
 	sku := c.Param("sku")
 
@@ -93,20 +65,7 @@ func (h *ProductVariantHandler) GetBySKU(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(dto.ToVariantResponse(variant), "Variant retrieved"))
 }
 
-// Create godoc
-// @Summary Create variant
-// @Description Create a new product variant (admin/editor only)
-// @Tags product-variants
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param product_id path string true "Product ID"
-// @Param request body dto.CreateVariantRequest true "Variant data"
-// @Success 201 {object} dto.Response{data=dto.VariantResponse}
-// @Failure 400 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Failure 403 {object} dto.Response
-// @Router /api/v1/products/{product_id}/variants [post]
+// Create creates a new product variant (admin/editor only)
 func (h *ProductVariantHandler) Create(c *gin.Context) {
 	productID := c.Param("id_or_slug")
 
@@ -143,22 +102,7 @@ func (h *ProductVariantHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.SuccessResponse(dto.ToVariantResponse(variant), "Variant created"))
 }
 
-// Update godoc
-// @Summary Update variant
-// @Description Update an existing product variant (admin/editor only)
-// @Tags product-variants
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param product_id path string true "Product ID"
-// @Param variant_id path string true "Variant ID"
-// @Param request body dto.UpdateVariantRequest true "Variant data"
-// @Success 200 {object} dto.Response{data=dto.VariantResponse}
-// @Failure 400 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Failure 403 {object} dto.Response
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{product_id}/variants/{variant_id} [put]
+// Update updates an existing product variant (admin/editor only)
 func (h *ProductVariantHandler) Update(c *gin.Context) {
 	variantID := c.Param("variant_id")
 
@@ -194,20 +138,7 @@ func (h *ProductVariantHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(dto.ToVariantResponse(variant), "Variant updated"))
 }
 
-// Delete godoc
-// @Summary Delete variant
-// @Description Delete a product variant (admin only)
-// @Tags product-variants
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param product_id path string true "Product ID"
-// @Param variant_id path string true "Variant ID"
-// @Success 200 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Failure 403 {object} dto.Response
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{product_id}/variants/{variant_id} [delete]
+// Delete deletes a product variant (admin only)
 func (h *ProductVariantHandler) Delete(c *gin.Context) {
 	variantID := c.Param("variant_id")
 

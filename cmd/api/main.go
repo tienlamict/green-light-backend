@@ -14,25 +14,6 @@ import (
 	gormLogger "gorm.io/gorm/logger"
 )
 
-// @title Green Light Backend API
-// @version 1.0
-// @description Product showcase backend REST API
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.email support@greenlight.com
-
-// @license.name MIT
-// @license.url https://opensource.org/licenses/MIT
-
-// @host localhost:8080
-// @BasePath /
-
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-// @description Type "Bearer" followed by a space and JWT token.
-
 func main() {
 	// Load configuration
 	cfg, err := config.Load()
@@ -75,7 +56,6 @@ func main() {
 	// Start server
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
 	logger.Log.Info(fmt.Sprintf("Server starting on %s", addr))
-	logger.Log.Info(fmt.Sprintf("Swagger documentation available at http://localhost:%s/api/docs/index.html", cfg.Server.Port))
 
 	if err := engine.Run(addr); err != nil {
 		logger.Log.Fatal(fmt.Sprintf("Failed to start server: %v", err))

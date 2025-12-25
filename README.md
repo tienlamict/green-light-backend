@@ -10,7 +10,6 @@ A production-ready REST API backend for a product showcase website built with Go
 - **Database:** MySQL 8.0
 - **Architecture:** Clean Architecture
 - **Auth:** JWT (HS256)
-- **Documentation:** Swagger/OpenAPI
 - **Logging:** Uber Zap
 - **Deployment:** Docker + Docker Compose
 
@@ -199,11 +198,6 @@ curl -X GET http://localhost:8080/api/v1/auth/user-info \
 ### Health
 - `GET /healthz` - Health check
 
-## 📚 API Documentation
-
-Swagger documentation is available at:
-- `http://localhost:8080/api/docs/index.html`
-
 ## 🧪 Testing
 
 Run all tests:
@@ -269,7 +263,6 @@ See `MIGRATION_GUIDE.md` for detailed information.
 - ✅ Structured logging (Zap)
 - ✅ CORS middleware
 - ✅ Request validation
-- ✅ Swagger documentation
 - ✅ Docker support
 - ✅ Unit & Integration tests
 - ✅ File upload support

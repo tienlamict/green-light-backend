@@ -19,17 +19,7 @@ func NewAuthHandler(authUseCase *usecase.AuthUseCase) *AuthHandler {
 	}
 }
 
-// Login godoc
-// @Summary User login
-// @Description Authenticate user and return JWT token
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body dto.LoginRequest true "Login credentials"
-// @Success 200 {object} dto.Response{data=dto.LoginResponse}
-// @Failure 400 {object} dto.Response
-// @Failure 401 {object} dto.Response
-// @Router /api/v1/auth/login [post]
+// Login authenticates a user and returns a JWT token
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -60,16 +50,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Login successful"))
 }
 
-// GetUserInfo godoc
-// @Summary Get user information
-// @Description Get authenticated user's information
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} dto.Response{data=dto.UserResponse}
-// @Failure 401 {object} dto.Response
-// @Router /api/v1/auth/user-info [get]
+// GetUserInfo returns the authenticated user's information
 func (h *AuthHandler) GetUserInfo(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	if userID == "" {

@@ -68,7 +68,6 @@ echo ========================================
 echo.
 echo Your API is now running at:
 echo   - API Base: http://localhost:8080
-echo   - Swagger: http://localhost:8080/api/docs/index.html
 echo   - Health: http://localhost:8080/healthz
 echo.
 echo Default credentials:

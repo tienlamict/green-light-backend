@@ -77,16 +77,7 @@ func (h *ProductImageHandler) ConfirmImageUpload(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.SuccessResponse(dto.ToProductImageResponse(image), "Image uploaded successfully"))
 }
 
-// ListProductImages godoc
-// @Summary List product images
-// @Description Get all images for a specific product
-// @Tags product-images
-// @Accept json
-// @Produce json
-// @Param id_or_slug path string true "Product ID or Slug"
-// @Success 200 {object} dto.Response{data=[]dto.ProductImageResponse}
-// @Failure 404 {object} dto.Response
-// @Router /api/v1/products/{id_or_slug}/images [get]
+// ListProductImages returns all images for a specific product
 func (h *ProductImageHandler) ListProductImages(c *gin.Context) {
 	productID := c.Param("id_or_slug")
 
