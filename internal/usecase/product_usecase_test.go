@@ -4,6 +4,7 @@ import (
 	"context"
 	"green-light-backend/internal/domain"
 	"testing"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -163,12 +164,96 @@ func (m *mockCategoryRepository) List(ctx context.Context, filter domain.Categor
 	return categories, int64(len(categories)), nil
 }
 
+// Mock product image repository
+type mockProductImageRepository struct {
+	images map[string]*domain.ProductImage
+}
+
+func newMockProductImageRepository() *mockProductImageRepository {
+	return &mockProductImageRepository{
+		images: make(map[string]*domain.ProductImage),
+	}
+}
+
+func (m *mockProductImageRepository) Create(ctx context.Context, image *domain.ProductImage) error {
+	m.images[image.ImageID] = image
+	return nil
+}
+
+func (m *mockProductImageRepository) GetByID(ctx context.Context, imageID string) (*domain.ProductImage, error) {
+	image, exists := m.images[imageID]
+	if !exists {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return image, nil
+}
+
+func (m *mockProductImageRepository) GetByProductID(ctx context.Context, productID string) ([]*domain.ProductImage, error) {
+	var result []*domain.ProductImage
+	for _, image := range m.images {
+		if image.ProductID == productID && image.VariantID == nil {
+			result = append(result, image)
+		}
+	}
+	return result, nil
+}
+
+func (m *mockProductImageRepository) GetByVariantID(ctx context.Context, variantID string) ([]*domain.ProductImage, error) {
+	var result []*domain.ProductImage
+	for _, image := range m.images {
+		if image.VariantID != nil && *image.VariantID == variantID {
+			result = append(result, image)
+		}
+	}
+	return result, nil
+}
+
+func (m *mockProductImageRepository) GetAllImagesByProductID(ctx context.Context, productID string) ([]*domain.ProductImage, error) {
+	var result []*domain.ProductImage
+	for _, image := range m.images {
+		if image.ProductID == productID {
+			result = append(result, image)
+		}
+	}
+	return result, nil
+}
+
+func (m *mockProductImageRepository) Update(ctx context.Context, image *domain.ProductImage) error {
+	m.images[image.ImageID] = image
+	return nil
+}
+
+func (m *mockProductImageRepository) Delete(ctx context.Context, imageID string) error {
+	delete(m.images, imageID)
+	return nil
+}
+
+func (m *mockProductImageRepository) SetMainImage(ctx context.Context, productID, imageID string) error {
+	// Unset all other main images for this product
+	for _, img := range m.images {
+		if img.ProductID == productID && img.ImageID != imageID {
+			img.IsMain = false
+		}
+	}
+	// Set this image as main
+	if img, exists := m.images[imageID]; exists {
+		img.IsMain = true
+	}
+	return nil
+}
+
+func (m *mockProductImageRepository) DeleteOrphanImages(ctx context.Context, olderThan time.Duration) error {
+	// Not needed for this test
+	return nil
+}
+
 func TestProductUseCase_Create(t *testing.T) {
 	// Setup
 	mockProdRepo := newMockProductRepository()
 	mockCatRepo := newMockCategoryRepository()
 	mockVariantRepo := newMockProductVariantRepository()
-	productUC := NewProductUseCase(mockProdRepo, mockCatRepo, mockVariantRepo)
+	mockImageRepo := newMockProductImageRepository()
+	productUC := NewProductUseCase(mockProdRepo, mockCatRepo, mockVariantRepo, mockImageRepo)
 
 	// Create test category
 	testCategory := &domain.Category{
@@ -261,7 +346,8 @@ func TestProductUseCase_GetByID(t *testing.T) {
 	mockProdRepo := newMockProductRepository()
 	mockCatRepo := newMockCategoryRepository()
 	mockVariantRepo := newMockProductVariantRepository()
-	productUC := NewProductUseCase(mockProdRepo, mockCatRepo, mockVariantRepo)
+	mockImageRepo := newMockProductImageRepository()
+	productUC := NewProductUseCase(mockProdRepo, mockCatRepo, mockVariantRepo, mockImageRepo)
 
 	// Create test product
 	priceMin := 99.99

@@ -4,12 +4,13 @@ import "green-light-backend/internal/domain"
 
 // CreateVariantRequest represents the request to create a product variant
 type CreateVariantRequest struct {
-	SKU        string            `json:"sku" binding:"required"`
-	Name       string            `json:"name" binding:"required"`
-	Attributes map[string]string `json:"attributes"`
-	Price      float64           `json:"price" binding:"required,gt=0"` // Price is required for variants
-	Stock      int               `json:"stock" binding:"min=0"`
-	IsActive   bool              `json:"is_active"`
+	SKU        string               `json:"sku" binding:"required"`
+	Name       string               `json:"name" binding:"required"`
+	Attributes map[string]string    `json:"attributes"`
+	Price      float64              `json:"price" binding:"required,gt=0"` // Price is required for variants
+	Stock      int                  `json:"stock" binding:"min=0"`
+	IsActive   bool                 `json:"is_active"`
+	Images     []CreateImageRequest `json:"images"` // Optional variant-specific images
 }
 
 // UpdateVariantRequest represents the request to update a product variant
@@ -35,6 +36,14 @@ type VariantResponse struct {
 	Images     []ImageResponse   `json:"images,omitempty"` // Variant-specific images
 	CreatedAt  string            `json:"created_at"`
 	UpdatedAt  string            `json:"updated_at"`
+}
+
+// CreateImageRequest represents an image in create variant request
+type CreateImageRequest struct {
+	ImageID   *string `json:"image_id"`   // Optional, will be generated if not provided
+	URL       string  `json:"url" binding:"required"`
+	IsMain    bool    `json:"is_main"`
+	SortOrder int     `json:"sort_order"`
 }
 
 // ImageResponse represents an image

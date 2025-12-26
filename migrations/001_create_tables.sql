@@ -170,13 +170,13 @@ CREATE TABLE IF NOT EXISTS `product_images` (
 -- ============================================================================
 
 -- Insert default admin user
--- Email: admin@example.com
--- Password: admin123
+-- Email: bopbeo@greenlight.com
+-- Password: bopbeo123
 INSERT INTO `users` (`user_id`, `email`, `password_hash`, `role`, `created_at`, `updated_at`)
 VALUES (
   'a628f74e-6a75-4bc8-a287-51264a87b6fd',
-  'admin@example.com',
-  '$2a$10$2.Od0DDLmSf3LGRn21/wmu2owU7lnvYFoI4tSCzXNeGYNl7GE88F6',
+  'bopbeo@greenlight.com',
+  '$2a$10$lYkjpuKTxhdpxcqbPyg8EOhnDPteaRuMuRhBKPwqYSg15gxRSmBRK',
   'admin',
   NOW(3),
   NOW(3)

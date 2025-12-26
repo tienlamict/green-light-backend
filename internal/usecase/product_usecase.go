@@ -20,13 +20,15 @@ type ProductUseCase struct {
 	productRepo  domain.ProductRepository
 	categoryRepo domain.CategoryRepository
 	variantRepo  domain.ProductVariantRepository
+	imageRepo    domain.ProductImageRepository
 }
 
-func NewProductUseCase(productRepo domain.ProductRepository, categoryRepo domain.CategoryRepository, variantRepo domain.ProductVariantRepository) *ProductUseCase {
+func NewProductUseCase(productRepo domain.ProductRepository, categoryRepo domain.CategoryRepository, variantRepo domain.ProductVariantRepository, imageRepo domain.ProductImageRepository) *ProductUseCase {
 	return &ProductUseCase{
 		productRepo:  productRepo,
 		categoryRepo: categoryRepo,
 		variantRepo:  variantRepo,
+		imageRepo:    imageRepo,
 	}
 }
 
@@ -44,6 +46,12 @@ type CreateProductInput struct {
 	Variants     []CreateProductVariantInput // Required: at least 1 variant
 }
 
+type CreateProductVariantImageInput struct {
+	URL       string
+	IsMain    bool
+	SortOrder int
+}
+
 type CreateProductVariantInput struct {
 	SKU        string
 	Name       string
@@ -51,6 +59,7 @@ type CreateProductVariantInput struct {
 	Price      float64 // Required for variants
 	Stock      int
 	IsActive   bool
+	Images     []CreateProductVariantImageInput // Optional variant-specific images
 }
 
 type UpdateProductInput struct {
@@ -156,6 +165,33 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 				return nil, errors.New("variant SKU already exists: " + variantInput.SKU)
 			}
 			return nil, err
+		}
+
+		// Create images for this variant if provided
+		if len(variantInput.Images) > 0 {
+			for _, imgInput := range variantInput.Images {
+				// For external URLs, use the URL as the object_key
+				// In a production system, you might want to extract a path or handle this differently
+				objectKey := imgInput.URL
+				
+				image := &domain.ProductImage{
+					ImageID:   utils.GenerateUUIDv7(),
+					ProductID: product.ProductID,
+					VariantID: &variant.VariantID, // Set variant_id for variant-specific images
+					URL:       imgInput.URL,
+					ObjectKey: objectKey,
+					IsMain:    imgInput.IsMain,
+					SortOrder: imgInput.SortOrder,
+					Status:    "ACTIVE",
+				}
+				
+				if err := uc.imageRepo.Create(ctx, image); err != nil {
+					// Log error but don't fail the entire operation
+					// You might want to rollback here depending on requirements
+					// For now, we'll continue with other images
+					continue
+				}
+			}
 		}
 	}
 

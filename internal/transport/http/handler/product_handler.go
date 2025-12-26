@@ -147,6 +147,16 @@ func (h *ProductHandler) Create(c *gin.Context) {
 	// Convert variant requests to usecase inputs
 	variants := make([]usecase.CreateProductVariantInput, len(req.Variants))
 	for i, v := range req.Variants {
+		// Convert images
+		images := make([]usecase.CreateProductVariantImageInput, len(v.Images))
+		for j, img := range v.Images {
+			images[j] = usecase.CreateProductVariantImageInput{
+				URL:       img.URL,
+				IsMain:    img.IsMain,
+				SortOrder: img.SortOrder,
+			}
+		}
+		
 		variants[i] = usecase.CreateProductVariantInput{
 			SKU:        v.SKU,
 			Name:       v.Name,
@@ -154,6 +164,7 @@ func (h *ProductHandler) Create(c *gin.Context) {
 			Price:      v.Price,
 			Stock:      v.Stock,
 			IsActive:   v.IsActive,
+			Images:     images,
 		}
 	}
 

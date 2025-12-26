@@ -60,7 +60,7 @@ func (r *Router) Setup() *gin.Engine {
 	jwtManager := utils.NewJWTManager(r.cfg.JWT.Secret, r.cfg.JWT.ExpireHours)
 	authUseCase := usecase.NewAuthUseCase(userRepo, jwtManager)
 	categoryUseCase := usecase.NewCategoryUseCase(categoryRepo)
-	productUseCase := usecase.NewProductUseCase(productRepo, categoryRepo, variantRepo)
+	productUseCase := usecase.NewProductUseCase(productRepo, categoryRepo, variantRepo, imageRepo)
 	variantUseCase := usecase.NewProductVariantUseCase(variantRepo, productRepo)
 	imageUseCase := usecase.NewProductImageUseCase(imageRepo, productRepo, minioClient)
 
