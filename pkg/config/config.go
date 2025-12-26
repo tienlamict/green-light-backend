@@ -53,7 +53,8 @@ type MinIOConfig struct {
 	SecretAccessKey string
 	BucketName      string
 	UseSSL          bool
-	PublicURL       string // Public URL for accessing objects
+	PublicURL       string // Public URL for accessing objects (used in presigned URLs for frontend)
+	PresignEndpoint string // Endpoint for generating presigned URLs (defaults to Endpoint if not set)
 }
 
 type LogConfig struct {
@@ -94,6 +95,7 @@ func Load() (*Config, error) {
 			BucketName:      getEnv("MINIO_BUCKET", "greenlight"),
 			UseSSL:          getEnvAsBool("MINIO_USE_SSL", false),
 			PublicURL:       getEnv("MINIO_PUBLIC_URL", "http://localhost:9000"),
+			PresignEndpoint: getEnv("MINIO_PRESIGN_ENDPOINT", ""), // If empty, uses Endpoint
 		},
 		Log: LogConfig{
 			Level: getEnv("LOG_LEVEL", "info"),

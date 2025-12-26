@@ -45,26 +45,6 @@ services:
     networks:
       - intranet
 
-  # MinIO setup service - configures bucket and CORS
-  minio-setup:
-    image: minio/mc:latest
-    container_name: greenlight_minio_setup
-    restart: "no"
-    depends_on:
-      minio:
-        condition: service_healthy
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-      MINIO_BUCKET: greenlight
-    volumes:
-      - ./scripts/minio-setup.sh:/setup.sh:ro
-      - ./minio:/cors-config:ro
-    entrypoint: /bin/sh
-    command: /setup.sh
-    networks:
-      - intranet
-
   api:
     build:
       context: .
@@ -92,7 +72,10 @@ services:
       MINIO_BUCKET: greenlight
       MINIO_USE_SSL: false
       MINIO_PUBLIC_URL: http://localhost:9000
+      MINIO_PRESIGN_ENDPOINT: localhost:9000
       LOG_LEVEL: info
+    extra_hosts:
+      - "localhost:host-gateway"
     volumes:
       - ./uploads:/root/uploads
     depends_on:

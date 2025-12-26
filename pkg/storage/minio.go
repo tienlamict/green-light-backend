@@ -15,9 +15,10 @@ import (
 
 // MinIOClient wraps MinIO client with helper methods
 type MinIOClient struct {
-	client    *minio.Client
-	bucket    string
-	publicURL string
+	client        *minio.Client // Client for internal operations
+	presignClient *minio.Client // Client for generating presigned URLs (uses public endpoint)
+	bucket        string
+	publicURL     string
 }
 
 // PresignedURLResponse contains upload and public URLs
@@ -30,13 +31,37 @@ type PresignedURLResponse struct {
 
 // NewMinIOClient creates a new MinIO client
 func NewMinIOClient(cfg *config.MinIOConfig) (*MinIOClient, error) {
-	// Initialize MinIO client
+	// Initialize MinIO client for internal operations
 	client, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
 		Secure: cfg.UseSSL,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create MinIO client: %w", err)
+	}
+
+	// Determine presign endpoint
+	// If PresignEndpoint is set, use it for generating presigned URLs
+	// This allows backend to use internal endpoint (minio:9000) for operations
+	// but generate presigned URLs with an endpoint accessible from frontend
+	presignEndpoint := cfg.PresignEndpoint
+	if presignEndpoint == "" {
+		// If not set, extract host from PublicURL
+		publicURLParsed, err := url.Parse(cfg.PublicURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse public URL: %w", err)
+		}
+		presignEndpoint = publicURLParsed.Host
+	}
+
+	// Initialize presign client with presign endpoint
+	// This client is used ONLY to generate presigned URLs with correct hostname
+	presignClient, err := minio.New(presignEndpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
+		Secure: cfg.UseSSL,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create presign MinIO client: %w", err)
 	}
 
 	// Check if bucket exists, create if not
@@ -74,9 +99,10 @@ func NewMinIOClient(cfg *config.MinIOConfig) (*MinIOClient, error) {
 	}
 
 	return &MinIOClient{
-		client:    client,
-		bucket:    cfg.BucketName,
-		publicURL: cfg.PublicURL,
+		client:        client,
+		presignClient: presignClient,
+		bucket:        cfg.BucketName,
+		publicURL:     cfg.PublicURL,
 	}, nil
 }
 
@@ -105,12 +131,9 @@ func (m *MinIOClient) GeneratePresignedUploadURL(
 	expiry := 10 * time.Minute
 	expiresAt := time.Now().Add(expiry)
 
-	// Set request parameters for presigned URL
-	reqParams := make(url.Values)
-	reqParams.Set("response-content-type", contentType)
-
-	// Generate presigned PUT URL
-	presignedURL, err := m.client.PresignedPutObject(
+	// Generate presigned PUT URL using presignClient
+	// The presignClient is configured with an endpoint that frontend can access
+	presignedURL, err := m.presignClient.PresignedPutObject(
 		ctx,
 		m.bucket,
 		objectKey,
@@ -120,7 +143,7 @@ func (m *MinIOClient) GeneratePresignedUploadURL(
 		return nil, fmt.Errorf("failed to generate presigned URL: %w", err)
 	}
 
-	// Build public URL
+	// Build public URL for accessing the uploaded object
 	publicURL := fmt.Sprintf("%s/%s/%s", m.publicURL, m.bucket, objectKey)
 
 	return &PresignedURLResponse{
@@ -191,4 +214,3 @@ func (m *MinIOClient) GetObjectKeyFromURL(publicURL string) (string, error) {
 func (m *MinIOClient) PublicURL() string {
 	return fmt.Sprintf("%s/%s", m.publicURL, m.bucket)
 }
-
