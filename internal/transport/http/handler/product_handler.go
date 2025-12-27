@@ -48,6 +48,26 @@ func (h *ProductHandler) loadVariantsWithImages(c *gin.Context, productID string
 	return dto.ToVariantListResponse(variants)
 }
 
+// loadProductImages loads product-level images (variant_id IS NULL) and converts to ImageResponse
+func (h *ProductHandler) loadProductImages(c *gin.Context, productID string) []dto.ImageResponse {
+	productImages, err := h.imageRepo.GetByProductID(c.Request.Context(), productID)
+	if err != nil || len(productImages) == 0 {
+		return []dto.ImageResponse{}
+	}
+
+	images := make([]dto.ImageResponse, len(productImages))
+	for i, img := range productImages {
+		images[i] = dto.ImageResponse{
+			ImageID:   img.ImageID,
+			URL:       img.URL,
+			IsMain:    img.IsMain,
+			SortOrder: img.SortOrder,
+		}
+	}
+
+	return images
+}
+
 // List returns a paginated list of products with optional filters
 func (h *ProductHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -95,6 +115,7 @@ func (h *ProductHandler) List(c *gin.Context) {
 	productResponses := dto.ToProductListResponse(products)
 	for i, product := range products {
 		productResponses[i].Variants = h.loadVariantsWithImages(c, product.ProductID)
+		productResponses[i].Images = h.loadProductImages(c, product.ProductID)
 	}
 
 	c.JSON(http.StatusOK, dto.PaginatedSuccessResponse(
@@ -128,6 +149,7 @@ func (h *ProductHandler) Get(c *gin.Context) {
 	// Get variants with images for this product
 	response := dto.ToProductResponse(product)
 	response.Variants = h.loadVariantsWithImages(c, product.ProductID)
+	response.Images = h.loadProductImages(c, product.ProductID)
 
 	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product retrieved"))
 }
@@ -238,6 +260,7 @@ func (h *ProductHandler) Create(c *gin.Context) {
 	// Get variants with images for response
 	response := dto.ToProductResponse(product)
 	response.Variants = h.loadVariantsWithImages(c, product.ProductID)
+	response.Images = h.loadProductImages(c, product.ProductID)
 
 	c.JSON(http.StatusCreated, dto.SuccessResponse(response, "Product created"))
 }
@@ -286,6 +309,7 @@ func (h *ProductHandler) Update(c *gin.Context) {
 	// Get variants with images for response
 	response := dto.ToProductResponse(product)
 	response.Variants = h.loadVariantsWithImages(c, product.ProductID)
+	response.Images = h.loadProductImages(c, product.ProductID)
 
 	c.JSON(http.StatusOK, dto.SuccessResponse(response, "Product updated"))
 }

@@ -13,6 +13,7 @@ import (
 type ProductImageUseCase struct {
 	imageRepo   domain.ProductImageRepository
 	productRepo domain.ProductRepository
+	variantRepo domain.ProductVariantRepository
 	minioClient *storage.MinIOClient
 }
 
@@ -20,11 +21,13 @@ type ProductImageUseCase struct {
 func NewProductImageUseCase(
 	imageRepo domain.ProductImageRepository,
 	productRepo domain.ProductRepository,
+	variantRepo domain.ProductVariantRepository,
 	minioClient *storage.MinIOClient,
 ) *ProductImageUseCase {
 	return &ProductImageUseCase{
 		imageRepo:   imageRepo,
 		productRepo: productRepo,
+		variantRepo: variantRepo,
 		minioClient: minioClient,
 	}
 }
@@ -74,6 +77,7 @@ func (uc *ProductImageUseCase) GeneratePresignedUploadURL(
 // ConfirmImageUploadInput is the input for confirming image upload
 type ConfirmImageUploadInput struct {
 	ProductID string
+	VariantID *string // Optional: if provided, image belongs to variant
 	ObjectKey string
 	IsMain    bool
 	SortOrder int
@@ -93,6 +97,21 @@ func (uc *ProductImageUseCase) ConfirmImageUpload(
 		return nil, fmt.Errorf("product not found")
 	}
 
+	// If variant_id is provided, verify variant exists and belongs to product
+	if input.VariantID != nil && *input.VariantID != "" {
+		variant, err := uc.variantRepo.GetByID(ctx, *input.VariantID)
+		if err != nil {
+			return nil, fmt.Errorf("variant not found: %w", err)
+		}
+		if variant == nil {
+			return nil, fmt.Errorf("variant not found")
+		}
+		// Verify variant belongs to the product
+		if variant.ProductID != input.ProductID {
+			return nil, fmt.Errorf("variant does not belong to this product")
+		}
+	}
+
 	// Verify object exists in MinIO
 	exists, err := uc.minioClient.ObjectExists(ctx, input.ObjectKey)
 	if err != nil {
@@ -109,6 +128,7 @@ func (uc *ProductImageUseCase) ConfirmImageUpload(
 	image := &domain.ProductImage{
 		ImageID:   utils.GenerateUUIDv7(),
 		ProductID: input.ProductID,
+		VariantID: input.VariantID, // Set variant_id if provided (NULL for product-level images)
 		URL:       publicURL,
 		ObjectKey: input.ObjectKey,
 		IsMain:    input.IsMain,

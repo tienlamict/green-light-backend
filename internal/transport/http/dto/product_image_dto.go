@@ -18,9 +18,10 @@ type PresignUploadResponse struct {
 
 // ConfirmImageUploadRequest is the request to confirm image upload
 type ConfirmImageUploadRequest struct {
-	ObjectKey string `json:"object_key" binding:"required"`
-	IsMain    bool   `json:"is_main"`
-	SortOrder int    `json:"sort_order"`
+	ObjectKey  string  `json:"object_key" binding:"required"`
+	VariantID  *string `json:"variant_id,omitempty"` // Optional: if provided, image belongs to variant
+	IsMain     bool    `json:"is_main"`
+	SortOrder  int     `json:"sort_order"`
 }
 
 // ProductImageResponse is the response for a product image

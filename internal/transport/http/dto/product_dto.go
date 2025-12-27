@@ -44,6 +44,7 @@ type ProductResponse struct {
 	CategoryID   string            `json:"category_id"`
 	Category     *CategoryResponse `json:"category,omitempty"`
 	IsActive     bool              `json:"is_active"`
+	Images       []ImageResponse   `json:"images,omitempty"` // Product-level images
 	Variants     []VariantResponse `json:"variants,omitempty"` // Include variants if available
 	CreatedAt    string            `json:"created_at"`
 	UpdatedAt    string            `json:"updated_at"`

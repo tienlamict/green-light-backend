@@ -62,7 +62,7 @@ func (r *Router) Setup() *gin.Engine {
 	categoryUseCase := usecase.NewCategoryUseCase(categoryRepo)
 	productUseCase := usecase.NewProductUseCase(productRepo, categoryRepo, variantRepo, imageRepo)
 	variantUseCase := usecase.NewProductVariantUseCase(variantRepo, productRepo)
-	imageUseCase := usecase.NewProductImageUseCase(imageRepo, productRepo, minioClient)
+	imageUseCase := usecase.NewProductImageUseCase(imageRepo, productRepo, variantRepo, minioClient)
 
 	// Initialize handlers
 	healthHandler := handler.NewHealthHandler()

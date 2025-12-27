@@ -65,6 +65,7 @@ func (h *ProductImageHandler) ConfirmImageUpload(c *gin.Context) {
 	// Confirm image upload
 	image, err := h.imageUseCase.ConfirmImageUpload(c.Request.Context(), usecase.ConfirmImageUploadInput{
 		ProductID: productID,
+		VariantID: req.VariantID, // Optional: if provided, image belongs to variant
 		ObjectKey: req.ObjectKey,
 		IsMain:    req.IsMain,
 		SortOrder: req.SortOrder,
