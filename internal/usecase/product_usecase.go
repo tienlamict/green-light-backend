@@ -248,10 +248,16 @@ func (uc *ProductUseCase) Update(ctx context.Context, productID string, input Up
 	}
 
 	// Check slug uniqueness if changed
-	if input.Slug != nil {
+	if input.Slug != nil && *input.Slug != product.Slug {
+		// Only validate if slug is actually different from current slug
 		existingProd, err := uc.productRepo.GetBySlug(ctx, *input.Slug)
 		if err == nil && existingProd.ProductID != productID {
 			return nil, ErrProductSlugExists
+		}
+		// Only update if slug is different
+		if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
+			// Unexpected error (not "not found")
+			return nil, err
 		}
 		product.Slug = *input.Slug
 	}
