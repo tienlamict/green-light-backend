@@ -171,17 +171,52 @@
 
 **Response**: Tương tự GET single product, bao gồm đầy đủ variants
 
-### 4. **PUT /api/v1/products/{id_or_slug}** - Update Product
-**Mô tả**: Cập nhật thông tin sản phẩm
+### 4. **PUT /api/v1/products/{id_or_slug}** - Update Product and Variants
+**Mô tả**: Cập nhật thông tin sản phẩm và variants (nếu có)
 
 **Thay đổi**:
 - ✅ Sau khi update, tự động load và trả về danh sách variants hiện tại
 - ✅ Response bao gồm đầy đủ thông tin variants
+- ✅ **MỚI**: Có thể update variants cùng lúc với product trong cùng 1 request
 
-**Note**: API này chỉ update thông tin product, không update variants. Để update variants, sử dụng các API variant riêng:
-- `PUT /api/v1/products/{product_id}/variants/{variant_id}`
-- `POST /api/v1/products/{product_id}/variants` (tạo variant mới)
-- `DELETE /api/v1/products/{product_id}/variants/{variant_id}`
+**Request Example - Chỉ update product**:
+```json
+{
+  "name": "iPhone 15 Pro Updated",
+  "short_desc": "Updated description"
+}
+```
+
+**Request Example - Update cả product và variants**:
+```json
+{
+  "name": "iPhone 15 Pro Updated",
+  "short_desc": "Updated description",
+  "variants": [
+    {
+      "variant_id": "01JGYYY...",
+      "price": 899.99,
+      "stock": 45
+    },
+    {
+      "variant_id": "01JGZZZ...",
+      "name": "256GB - Black (Updated)",
+      "price": 1099.99,
+      "stock": 55,
+      "is_active": true
+    }
+  ]
+}
+```
+
+**Lưu ý**:
+- Khi update variants qua API này, **bắt buộc** phải có `variant_id` cho mỗi variant
+- Chỉ update các field được cung cấp (partial update)
+- Nếu không muốn update variants, có thể bỏ qua field `variants` hoặc để array rỗng
+- Vẫn có thể sử dụng API variant riêng nếu muốn:
+  - `PUT /api/v1/products/{product_id}/variants/{variant_id}` (không cần variant_id trong body)
+  - `POST /api/v1/products/{product_id}/variants` (tạo variant mới)
+  - `DELETE /api/v1/products/{product_id}/variants/{variant_id}` (xóa variant)
 
 ### 5. **DELETE /api/v1/products/{id_or_slug}** - Delete Product
 **Mô tả**: Xóa sản phẩm
@@ -292,13 +327,30 @@ curl -X POST http://localhost:8080/api/v1/products \
   }'
 ```
 
-4. **Update Product**:
+4. **Update Product (chỉ product)**:
 ```bash
 curl -X PUT http://localhost:8080/api/v1/products/01JGXXX... \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
     "name": "Updated Name"
+  }'
+```
+
+5. **Update Product và Variants (merged API)**:
+```bash
+curl -X PUT http://localhost:8080/api/v1/products/01JGXXX... \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "name": "Updated Name",
+    "variants": [
+      {
+        "variant_id": "01JGYYY...",
+        "price": 899.99,
+        "stock": 45
+      }
+    ]
   }'
 ```
 
@@ -313,16 +365,20 @@ curl -X PUT http://localhost:8080/api/v1/products/01JGXXX... \
 - ✅ Tất cả product APIs giờ đều trả về variants
 - ✅ Không cần gọi thêm API riêng để lấy variants
 - ✅ Frontend có thể hiển thị đầy đủ thông tin ngay từ list view
+- ✅ **MỚI**: API Update Product giờ có thể update cả variants trong cùng 1 request
 
 ## Summary
 
-| API Endpoint | Method | Variants Included | Status |
-|-------------|--------|-------------------|--------|
-| `/api/v1/products` | GET | ✅ Yes | Updated |
-| `/api/v1/products/{id_or_slug}` | GET | ✅ Yes | Already had |
-| `/api/v1/products` | POST | ✅ Yes | Already had |
-| `/api/v1/products/{id_or_slug}` | PUT | ✅ Yes | Updated |
-| `/api/v1/products/{id_or_slug}` | DELETE | N/A | No change |
+| API Endpoint | Method | Variants Included | Can Update Variants | Status |
+|-------------|--------|-------------------|---------------------|--------|
+| `/api/v1/products` | GET | ✅ Yes | N/A | Updated |
+| `/api/v1/products/{id_or_slug}` | GET | ✅ Yes | N/A | Already had |
+| `/api/v1/products` | POST | ✅ Yes | ✅ Yes (create) | Already had |
+| `/api/v1/products/{id_or_slug}` | PUT | ✅ Yes | ✅ Yes (update) | **MERGED** |
+| `/api/v1/products/{id_or_slug}` | DELETE | N/A | N/A | No change |
+| `/api/v1/products/{id}/variants/{variant_id}` | PUT | N/A | ✅ Yes | Still available |
 
 **Tất cả các API đọc (GET, POST, PUT) giờ đều trả về đầy đủ thông tin variants! 🎉**
+
+**API Update Product giờ có thể update cả product và variants trong cùng 1 request! 🚀**
 

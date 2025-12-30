@@ -73,6 +73,17 @@ type UpdateProductInput struct {
 	Gallery      *[]string
 	CategoryID   *string
 	IsActive     *bool
+	Variants     []UpdateProductVariantInput // Optional: update variants in the same request
+}
+
+type UpdateProductVariantInput struct {
+	VariantID  string // Required to identify which variant to update
+	SKU        *string
+	Name       *string
+	Attributes *map[string]string
+	Price      *float64
+	Stock      *int
+	IsActive   *bool
 }
 
 func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) (*domain.Product, error) {
@@ -291,6 +302,56 @@ func (uc *ProductUseCase) Update(ctx context.Context, productID string, input Up
 
 	if err := uc.productRepo.Update(ctx, product); err != nil {
 		return nil, err
+	}
+
+	// Update variants if provided
+	if len(input.Variants) > 0 {
+		for _, variantInput := range input.Variants {
+			// Get the variant to update
+			variant, err := uc.variantRepo.GetByID(ctx, variantInput.VariantID)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, errors.New("variant not found: " + variantInput.VariantID)
+				}
+				return nil, err
+			}
+
+			// Verify the variant belongs to this product
+			if variant.ProductID != productID {
+				return nil, errors.New("variant does not belong to this product: " + variantInput.VariantID)
+			}
+
+			// Check SKU uniqueness if changed
+			if variantInput.SKU != nil && *variantInput.SKU != variant.SKU {
+				existingVariant, err := uc.variantRepo.GetBySKU(ctx, *variantInput.SKU)
+				if err == nil && existingVariant.VariantID != variantInput.VariantID {
+					return nil, errors.New("variant SKU already exists: " + *variantInput.SKU)
+				}
+				variant.SKU = *variantInput.SKU
+			}
+
+			// Update variant fields
+			if variantInput.Name != nil {
+				variant.Name = *variantInput.Name
+			}
+			if variantInput.Attributes != nil {
+				variant.Attributes = *variantInput.Attributes
+			}
+			if variantInput.Price != nil {
+				variant.Price = *variantInput.Price
+			}
+			if variantInput.Stock != nil {
+				variant.Stock = *variantInput.Stock
+			}
+			if variantInput.IsActive != nil {
+				variant.IsActive = *variantInput.IsActive
+			}
+
+			// Update the variant
+			if err := uc.variantRepo.Update(ctx, variant); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	// Reload to get updated relationships

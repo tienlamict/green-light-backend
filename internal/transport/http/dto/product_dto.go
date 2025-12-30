@@ -17,16 +17,17 @@ type CreateProductRequest struct {
 }
 
 type UpdateProductRequest struct {
-	Name         *string   `json:"name" binding:"omitempty,min=2,max=255"`
-	Slug         *string   `json:"slug" binding:"omitempty,max=255"`
-	SKU          *string   `json:"sku" binding:"omitempty,max=100"`
-	ShortDesc    *string   `json:"short_desc" binding:"omitempty,max=500"`
-	Description  *string   `json:"description"`
-	Stock        *int      `json:"stock" binding:"omitempty,gte=0"`
-	ThumbnailURL *string   `json:"thumbnail_url"`
-	Gallery      *[]string `json:"gallery"`
-	CategoryID   *string   `json:"category_id"`
-	IsActive     *bool     `json:"is_active"`
+	Name         *string                 `json:"name" binding:"omitempty,min=2,max=255"`
+	Slug         *string                 `json:"slug" binding:"omitempty,max=255"`
+	SKU          *string                 `json:"sku" binding:"omitempty,max=100"`
+	ShortDesc    *string                 `json:"short_desc" binding:"omitempty,max=500"`
+	Description  *string                 `json:"description"`
+	Stock        *int                    `json:"stock" binding:"omitempty,gte=0"`
+	ThumbnailURL *string                 `json:"thumbnail_url"`
+	Gallery      *[]string               `json:"gallery"`
+	CategoryID   *string                 `json:"category_id"`
+	IsActive     *bool                   `json:"is_active"`
+	Variants     []UpdateVariantRequest  `json:"variants"` // Optional: update variants in the same request
 }
 
 type ProductResponse struct {

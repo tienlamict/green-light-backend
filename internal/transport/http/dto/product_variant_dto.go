@@ -15,6 +15,7 @@ type CreateVariantRequest struct {
 
 // UpdateVariantRequest represents the request to update a product variant
 type UpdateVariantRequest struct {
+	VariantID  *string            `json:"variant_id"` // Required when updating via product API
 	SKU        *string            `json:"sku"`
 	Name       *string            `json:"name"`
 	Attributes *map[string]string `json:"attributes"`

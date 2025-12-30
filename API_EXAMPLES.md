@@ -496,6 +496,55 @@ Content-Type: application/json
 }
 ```
 
+### 8.1. Cập nhật Product và Variants cùng lúc (Merged API)
+
+**Mô tả:** API này cho phép cập nhật thông tin product và các variants trong cùng một request.
+
+**Cập nhật chỉ product:**
+```bash
+PUT /api/v1/products/{id_or_slug}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Cotton T-Shirt Updated",
+  "short_desc": "Updated premium cotton t-shirt"
+}
+```
+
+**Cập nhật cả product và variants:**
+```bash
+PUT /api/v1/products/{id_or_slug}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Cotton T-Shirt Updated",
+  "short_desc": "Updated premium cotton t-shirt",
+  "variants": [
+    {
+      "variant_id": "018f1235-5678-7890-abcd-ef1234567890",
+      "price": 27.99,
+      "stock": 12
+    },
+    {
+      "variant_id": "018f1236-5678-7890-abcd-ef1234567890",
+      "name": "Red - Medium (Updated)",
+      "price": 28.99,
+      "stock": 18,
+      "is_active": true
+    }
+  ]
+}
+```
+
+**Lưu ý quan trọng:**
+- ✅ Khi update variants qua API này, **bắt buộc** phải có `variant_id` cho mỗi variant
+- ✅ Chỉ update các field được cung cấp (partial update)
+- ✅ Nếu không muốn update variants, có thể bỏ qua field `variants` hoặc để array rỗng
+- ✅ Response sẽ trả về đầy đủ thông tin product kèm tất cả variants hiện tại
+- ⚠️ Vẫn có thể sử dụng API variant riêng (section 8) nếu chỉ muốn update 1 variant
+
 ### 9. Xóa variant
 
 ```bash

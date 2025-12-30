@@ -275,6 +275,29 @@ func (h *ProductHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// Convert variant requests to usecase inputs
+	var variants []usecase.UpdateProductVariantInput
+	if len(req.Variants) > 0 {
+		variants = make([]usecase.UpdateProductVariantInput, 0, len(req.Variants))
+		for _, v := range req.Variants {
+			// Variant ID is required when updating via product API
+			if v.VariantID == nil || *v.VariantID == "" {
+				c.JSON(http.StatusBadRequest, dto.ErrorResponse("variant_id is required for each variant"))
+				return
+			}
+			
+			variants = append(variants, usecase.UpdateProductVariantInput{
+				VariantID:  *v.VariantID,
+				SKU:        v.SKU,
+				Name:       v.Name,
+				Attributes: v.Attributes,
+				Price:      v.Price,
+				Stock:      v.Stock,
+				IsActive:   v.IsActive,
+			})
+		}
+	}
+
 	input := usecase.UpdateProductInput{
 		Name:         req.Name,
 		Slug:         req.Slug,
@@ -286,6 +309,7 @@ func (h *ProductHandler) Update(c *gin.Context) {
 		Gallery:      req.Gallery,
 		CategoryID:   req.CategoryID,
 		IsActive:     req.IsActive,
+		Variants:     variants,
 	}
 
 	product, err := h.productUseCase.Update(c.Request.Context(), productID, input)
@@ -299,6 +323,11 @@ func (h *ProductHandler) Update(c *gin.Context) {
 			return
 		}
 		if err == usecase.ErrCategoryNotFound {
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+			return
+		}
+		// Check for variant-related errors
+		if strings.Contains(err.Error(), "variant") {
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
 			return
 		}
