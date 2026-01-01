@@ -30,6 +30,7 @@ type CreateCategoryInput struct {
 	Name        string
 	Slug        string
 	Description string
+	IconURL     string
 	IsActive    bool
 }
 
@@ -37,6 +38,7 @@ type UpdateCategoryInput struct {
 	Name        *string
 	Slug        *string
 	Description *string
+	IconURL     *string
 	IsActive    *bool
 }
 
@@ -61,6 +63,7 @@ func (uc *CategoryUseCase) Create(ctx context.Context, input CreateCategoryInput
 		Name:        input.Name,
 		Slug:        slug,
 		Description: input.Description,
+		IconURL:     input.IconURL,
 		IsActive:    input.IsActive,
 	}
 
@@ -116,6 +119,9 @@ func (uc *CategoryUseCase) Update(ctx context.Context, categoryID string, input 
 	}
 	if input.Description != nil {
 		category.Description = *input.Description
+	}
+	if input.IconURL != nil {
+		category.IconURL = *input.IconURL
 	}
 	if input.IsActive != nil {
 		category.IsActive = *input.IsActive

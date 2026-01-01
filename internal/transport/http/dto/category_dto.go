@@ -6,6 +6,7 @@ type CreateCategoryRequest struct {
 	Name        string `json:"name" binding:"required,min=2,max=255"`
 	Slug        string `json:"slug" binding:"omitempty,max=255"`
 	Description string `json:"description"`
+	IconURL     string `json:"icon_url"` // Icon image URL stored in MinIO
 	IsActive    bool   `json:"is_active"`
 }
 
@@ -13,6 +14,7 @@ type UpdateCategoryRequest struct {
 	Name        *string `json:"name" binding:"omitempty,min=2,max=255"`
 	Slug        *string `json:"slug" binding:"omitempty,max=255"`
 	Description *string `json:"description"`
+	IconURL     *string `json:"icon_url"` // Icon image URL stored in MinIO
 	IsActive    *bool   `json:"is_active"`
 }
 
@@ -21,6 +23,7 @@ type CategoryResponse struct {
 	Name        string `json:"name"`
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
+	IconURL     string `json:"icon_url"` // Icon image URL stored in MinIO
 	IsActive    bool   `json:"is_active"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
@@ -32,6 +35,7 @@ func ToCategoryResponse(category *domain.Category) CategoryResponse {
 		Name:        category.Name,
 		Slug:        category.Slug,
 		Description: category.Description,
+		IconURL:     category.IconURL,
 		IsActive:    category.IsActive,
 		CreatedAt:   category.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:   category.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),

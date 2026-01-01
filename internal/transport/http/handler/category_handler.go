@@ -95,6 +95,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 		Name:        req.Name,
 		Slug:        req.Slug,
 		Description: req.Description,
+		IconURL:     req.IconURL,
 		IsActive:    req.IsActive,
 	}
 
@@ -138,6 +139,7 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 		Name:        req.Name,
 		Slug:        req.Slug,
 		Description: req.Description,
+		IconURL:     req.IconURL,
 		IsActive:    req.IsActive,
 	}
 

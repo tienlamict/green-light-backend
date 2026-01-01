@@ -2,37 +2,8 @@ package domain
 
 import (
 	"context"
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"time"
 )
-
-// Gallery represents a JSON array of image URLs
-type Gallery []string
-
-// Scan implements the sql.Scanner interface
-func (g *Gallery) Scan(value interface{}) error {
-	if value == nil {
-		*g = Gallery{}
-		return nil
-	}
-
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("failed to scan Gallery")
-	}
-
-	return json.Unmarshal(bytes, g)
-}
-
-// Value implements the driver.Valuer interface
-func (g Gallery) Value() (driver.Value, error) {
-	if g == nil {
-		return json.Marshal(Gallery{})
-	}
-	return json.Marshal(g)
-}
 
 // Product represents a product entity
 type Product struct {
@@ -46,7 +17,6 @@ type Product struct {
 	PriceMax     *float64  `gorm:"type:decimal(10,2);column:price_max" json:"price_max"` // Max price from variants
 	Stock        int       `gorm:"type:int;default:0;not null" json:"stock"`
 	ThumbnailURL string    `gorm:"type:varchar(500)" json:"thumbnail_url"`
-	Gallery      Gallery   `gorm:"type:json" json:"gallery"`
 	CategoryID   string    `gorm:"type:varchar(36);not null;index" json:"category_id"`
 	IsActive     bool      `gorm:"default:true;not null" json:"is_active"`
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`

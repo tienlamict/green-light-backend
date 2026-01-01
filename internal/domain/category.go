@@ -11,6 +11,7 @@ type Category struct {
 	Name        string    `gorm:"type:varchar(255);not null" json:"name"`
 	Slug        string    `gorm:"uniqueIndex;type:varchar(255);not null" json:"slug"`
 	Description string    `gorm:"type:text" json:"description"`
+	IconURL     string    `gorm:"type:varchar(500)" json:"icon_url"` // Icon image URL stored in MinIO
 	IsActive    bool      `gorm:"default:true;not null" json:"is_active"`
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`

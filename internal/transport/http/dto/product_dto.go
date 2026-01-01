@@ -10,7 +10,6 @@ type CreateProductRequest struct {
 	Description  string                 `json:"description"`
 	Stock        *int                   `json:"stock" binding:"omitempty,gte=0"` // Optional, defaults to 0 if null
 	ThumbnailURL string                 `json:"thumbnail_url"`
-	Gallery      []string               `json:"gallery"`
 	CategoryID   string                 `json:"category_id" binding:"required"`
 	IsActive     bool                   `json:"is_active"`
 	Variants     []CreateVariantRequest `json:"variants" binding:"required,min=1"` // At least 1 variant required
@@ -24,7 +23,6 @@ type UpdateProductRequest struct {
 	Description  *string                 `json:"description"`
 	Stock        *int                    `json:"stock" binding:"omitempty,gte=0"`
 	ThumbnailURL *string                 `json:"thumbnail_url"`
-	Gallery      *[]string               `json:"gallery"`
 	CategoryID   *string                 `json:"category_id"`
 	IsActive     *bool                   `json:"is_active"`
 	Variants     []UpdateVariantRequest  `json:"variants"` // Optional: update variants in the same request
@@ -41,7 +39,6 @@ type ProductResponse struct {
 	PriceMax     *float64          `json:"price_max"` // Max price from variants
 	Stock        int               `json:"stock"`
 	ThumbnailURL string            `json:"thumbnail_url"`
-	Gallery      []string          `json:"gallery"`
 	CategoryID   string            `json:"category_id"`
 	Category     *CategoryResponse `json:"category,omitempty"`
 	IsActive     bool              `json:"is_active"`
@@ -68,7 +65,6 @@ func ToProductResponse(product *domain.Product) ProductResponse {
 		PriceMax:     product.PriceMax,
 		Stock:        product.Stock,
 		ThumbnailURL: product.ThumbnailURL,
-		Gallery:      []string(product.Gallery),
 		CategoryID:   product.CategoryID,
 		IsActive:     product.IsActive,
 		CreatedAt:    product.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),

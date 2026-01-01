@@ -61,7 +61,6 @@ Content-Type: application/json
   "description": "Soft, breathable cotton t-shirt available in multiple colors and sizes",
   "stock": 0,
   "thumbnail_url": "http://localhost:9000/greenlight/products/2024/12/prod-123/main.webp",
-  "gallery": [],
   "category_id": "category-uuid-here",
   "is_active": true,
   "variants": [
@@ -152,7 +151,6 @@ Content-Type: application/json
     "price_max": 31.99,
     "stock": 83,
     "thumbnail_url": "http://localhost:9000/greenlight/products/2024/12/prod-123/main.webp",
-    "gallery": [],
     "category_id": "category-uuid-here",
     "is_active": true,
     "variants": [
@@ -764,7 +762,6 @@ GET /api/v1/products/{product_id}
     "price_max": 31.99,
     "stock": 83,
     "thumbnail_url": "http://localhost:9000/greenlight/products/2024/12/prod-123/main.webp",
-    "gallery": [],
     "category_id": "category-uuid-here",
     "category": {
       "category_id": "category-uuid-here",
@@ -818,7 +815,6 @@ GET /api/v1/products/{product_id}/images
   "description": "Premium smartphone with advanced features",
   "stock": 0,
   "thumbnail_url": "http://localhost:9000/greenlight/products/2024/12/prod-456/main.webp",
-  "gallery": [],
   "category_id": "electronics-uuid",
   "is_active": true,
   "variants": [
@@ -910,7 +906,6 @@ curl --location 'http://localhost:8080/api/v1/products' \
     "description": "Đèn LED âm trần Diamond là dòng sản phẩm cao cấp của Kingled, nổi bật với thiết kế viền ánh kim độc đáo và mặt đèn dạng pha lê hoặc phản quang sâu. Đây là lựa chọn lý tưởng cho những không gian đòi hỏi tính thẩm mỹ cao như biệt thự, khách sạn, showroom, sảnh đón hay khu vực trưng bày nghệ thuật. Diamond không chỉ chiếu sáng hiệu quả mà còn trở thành điểm nhấn sang trọng cho trần nhà.",
     "stock": 0,
     "thumbnail_url": "http://localhost:9000/greenlight/products/2024/12/prod-123/main.webp",
-    "gallery": [],
     "category_id": "3719d15a-3478-4300-95ea-1cfb4d24a203",
     "is_active": true,
     "variants": [

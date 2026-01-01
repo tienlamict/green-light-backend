@@ -40,7 +40,6 @@ type CreateProductInput struct {
 	Description  string
 	Stock        int
 	ThumbnailURL string
-	Gallery      []string
 	CategoryID   string
 	IsActive     bool
 	Variants     []CreateProductVariantInput // Required: at least 1 variant
@@ -70,7 +69,6 @@ type UpdateProductInput struct {
 	Description  *string
 	Stock        *int
 	ThumbnailURL *string
-	Gallery      *[]string
 	CategoryID   *string
 	IsActive     *bool
 	Variants     []UpdateProductVariantInput // Optional: update variants in the same request
@@ -114,11 +112,6 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 	}
 	// Slug doesn't exist (ErrRecordNotFound) - OK to continue
 
-	gallery := domain.Gallery(input.Gallery)
-	if gallery == nil {
-		gallery = domain.Gallery{}
-	}
-
 	product := &domain.Product{
 		ProductID:    utils.GenerateUUIDv7(),
 		Name:         input.Name,
@@ -128,7 +121,6 @@ func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput) 
 		Description:  input.Description,
 		Stock:        input.Stock,
 		ThumbnailURL: input.ThumbnailURL,
-		Gallery:      gallery,
 		CategoryID:   input.CategoryID,
 		IsActive:     input.IsActive,
 	}
@@ -292,9 +284,6 @@ func (uc *ProductUseCase) Update(ctx context.Context, productID string, input Up
 	}
 	if input.ThumbnailURL != nil {
 		product.ThumbnailURL = *input.ThumbnailURL
-	}
-	if input.Gallery != nil {
-		product.Gallery = domain.Gallery(*input.Gallery)
 	}
 	if input.IsActive != nil {
 		product.IsActive = *input.IsActive
