@@ -179,7 +179,6 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 			Description:  "Experience superior sound quality with these premium wireless Bluetooth headphones. Features include active noise cancellation, 30-hour battery life, and comfortable over-ear design.",
 			Stock:        50,
 			ThumbnailURL: "/uploads/headphones.jpg",
-			Gallery:      domain.Gallery{"/uploads/headphones-1.jpg", "/uploads/headphones-2.jpg"},
 			CategoryID:   electronics.CategoryID,
 			IsActive:     true,
 		},
@@ -192,7 +191,6 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 			Description:  "Immerse yourself in stunning 4K resolution with this 55-inch smart TV. Features HDR10+, built-in streaming apps, and voice control compatibility.",
 			Stock:        25,
 			ThumbnailURL: "/uploads/tv.jpg",
-			Gallery:      domain.Gallery{"/uploads/tv-1.jpg", "/uploads/tv-2.jpg", "/uploads/tv-3.jpg"},
 			CategoryID:   electronics.CategoryID,
 			IsActive:     true,
 		},
@@ -205,7 +203,6 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 			Description:  "Stay connected with this powerful smartphone featuring 128GB storage, triple camera system, and lightning-fast 5G connectivity. Perfect for photography enthusiasts and power users.",
 			Stock:        100,
 			ThumbnailURL: "/uploads/phone.jpg",
-			Gallery:      domain.Gallery{"/uploads/phone-1.jpg", "/uploads/phone-2.jpg"},
 			CategoryID:   electronics.CategoryID,
 			IsActive:     true,
 		},
@@ -218,7 +215,6 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 			Description:  "Enhance your workspace with this modern office desk. Features include built-in cable management, spacious work surface, and sturdy construction. Perfect for home offices and professional environments.",
 			Stock:        30,
 			ThumbnailURL: "/uploads/desk.jpg",
-			Gallery:      domain.Gallery{"/uploads/desk-1.jpg", "/uploads/desk-2.jpg"},
 			CategoryID:   furniture.CategoryID,
 			IsActive:     true,
 		},
@@ -231,7 +227,6 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 			Description:  "Work in comfort with this ergonomic office chair. Features adjustable lumbar support, breathable mesh back, and smooth-rolling casters. Designed for all-day comfort and productivity.",
 			Stock:        45,
 			ThumbnailURL: "/uploads/chair.jpg",
-			Gallery:      domain.Gallery{"/uploads/chair-1.jpg", "/uploads/chair-2.jpg", "/uploads/chair-3.jpg"},
 			CategoryID:   furniture.CategoryID,
 			IsActive:     true,
 		},
@@ -244,7 +239,6 @@ func seedProducts(db *gorm.DB, categories map[string]*domain.Category) error {
 			Description:  "Organize your books and decor with this stylish bookshelf. Features 5 spacious tiers and a bottom storage cabinet. Constructed from high-quality wood with a contemporary finish.",
 			Stock:        20,
 			ThumbnailURL: "/uploads/bookshelf.jpg",
-			Gallery:      domain.Gallery{"/uploads/bookshelf-1.jpg", "/uploads/bookshelf-2.jpg"},
 			CategoryID:   furniture.CategoryID,
 			IsActive:     true,
 		},
@@ -335,4 +329,3 @@ func seedProductVariants(db *gorm.DB) error {
 
 	return nil
 }
-
