@@ -192,6 +192,21 @@ func GenerateObjectKey(productID, uuid, ext string) string {
 	return filepath.Join("products", year, month, productID, fmt.Sprintf("%s.%s", uuid, ext))
 }
 
+// GenerateCategoryIconObjectKey generates a unique object key for category icons
+// Format: categories/{yyyy}/{mm}/{category_id}/{uuid}.{ext}
+func GenerateCategoryIconObjectKey(categoryID, uuid, ext string) string {
+	now := time.Now()
+	year := now.Format("2006")
+	month := now.Format("01")
+
+	// Clean extension (remove dot if present)
+	if len(ext) > 0 && ext[0] == '.' {
+		ext = ext[1:]
+	}
+
+	return filepath.Join("categories", year, month, categoryID, fmt.Sprintf("%s.%s", uuid, ext))
+}
+
 // GetObjectKeyFromURL extracts object key from public URL
 func (m *MinIOClient) GetObjectKeyFromURL(publicURL string) (string, error) {
 	// Parse URL

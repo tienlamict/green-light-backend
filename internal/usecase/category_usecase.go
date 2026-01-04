@@ -3,7 +3,9 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"green-light-backend/internal/domain"
+	"green-light-backend/pkg/storage"
 	"green-light-backend/pkg/utils"
 	"strings"
 
@@ -18,11 +20,13 @@ var (
 
 type CategoryUseCase struct {
 	categoryRepo domain.CategoryRepository
+	minioClient  *storage.MinIOClient
 }
 
-func NewCategoryUseCase(categoryRepo domain.CategoryRepository) *CategoryUseCase {
+func NewCategoryUseCase(categoryRepo domain.CategoryRepository, minioClient *storage.MinIOClient) *CategoryUseCase {
 	return &CategoryUseCase{
 		categoryRepo: categoryRepo,
+		minioClient:  minioClient,
 	}
 }
 
@@ -149,6 +153,51 @@ func (uc *CategoryUseCase) Delete(ctx context.Context, categoryID string) error 
 
 func (uc *CategoryUseCase) List(ctx context.Context, filter domain.CategoryFilter) ([]*domain.Category, int64, error) {
 	return uc.categoryRepo.List(ctx, filter)
+}
+
+// GeneratePresignedIconURLInput is the input for generating presigned URL for category icon
+type GeneratePresignedIconURLInput struct {
+	CategoryID  string
+	ContentType string
+	Extension   string
+}
+
+// GeneratePresignedIconURL generates a presigned URL for direct upload to MinIO
+func (uc *CategoryUseCase) GeneratePresignedIconURL(
+	ctx context.Context,
+	input GeneratePresignedIconURLInput,
+) (*storage.PresignedURLResponse, error) {
+	// Verify category exists
+	category, err := uc.categoryRepo.GetByID(ctx, input.CategoryID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrCategoryNotFound
+		}
+		return nil, fmt.Errorf("failed to get category: %w", err)
+	}
+	if category == nil {
+		return nil, ErrCategoryNotFound
+	}
+
+	// Generate unique UUID for the icon (using v7 for time-ordered consistency)
+	iconUUID := utils.GenerateUUIDv7()
+
+	// Generate object key: categories/{yyyy}/{mm}/{category_id}/{uuid}.{ext}
+	objectKey := storage.GenerateCategoryIconObjectKey(input.CategoryID, iconUUID, input.Extension)
+
+	// Generate presigned URL (max 2MB for icons)
+	maxSize := int64(2 * 1024 * 1024) // 2MB
+	presignedResp, err := uc.minioClient.GeneratePresignedUploadURL(
+		ctx,
+		objectKey,
+		input.ContentType,
+		maxSize,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate presigned URL: %w", err)
+	}
+
+	return presignedResp, nil
 }
 
 // generateSlug creates a URL-friendly slug from a string

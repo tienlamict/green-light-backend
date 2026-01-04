@@ -59,7 +59,7 @@ func (r *Router) Setup() *gin.Engine {
 	// Initialize use cases
 	jwtManager := utils.NewJWTManager(r.cfg.JWT.Secret, r.cfg.JWT.ExpireHours)
 	authUseCase := usecase.NewAuthUseCase(userRepo, jwtManager)
-	categoryUseCase := usecase.NewCategoryUseCase(categoryRepo)
+	categoryUseCase := usecase.NewCategoryUseCase(categoryRepo, minioClient)
 	productUseCase := usecase.NewProductUseCase(productRepo, categoryRepo, variantRepo, imageRepo)
 	variantUseCase := usecase.NewProductVariantUseCase(variantRepo, productRepo)
 	imageUseCase := usecase.NewProductImageUseCase(imageRepo, productRepo, variantRepo, minioClient)
@@ -169,6 +169,10 @@ func (r *Router) Setup() *gin.Engine {
 			categoriesProtected.DELETE("/:id",
 				middleware.RequireRole("admin"),
 				categoryHandler.Delete)
+			// Presigned URL for category icon upload
+			categoriesProtected.POST("/:id/icon/presign",
+				middleware.RequireRole("admin", "editor"),
+				categoryHandler.GeneratePresignedIconURL)
 		}
 
 		// Upload routes (protected)

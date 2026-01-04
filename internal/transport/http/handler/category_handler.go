@@ -176,3 +176,37 @@ func (h *CategoryHandler) Delete(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.SuccessResponse(nil, "Category deleted"))
 }
+
+// GeneratePresignedIconURL generates a presigned URL for direct upload of category icon
+// POST /api/v1/categories/:id/icon/presign
+func (h *CategoryHandler) GeneratePresignedIconURL(c *gin.Context) {
+	categoryID := c.Param("id")
+
+	var req dto.PresignUploadRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse(err.Error()))
+		return
+	}
+
+	// Generate presigned URL
+	presignedResp, err := h.categoryUseCase.GeneratePresignedIconURL(c.Request.Context(), usecase.GeneratePresignedIconURLInput{
+		CategoryID:  categoryID,
+		ContentType: req.ContentType,
+		Extension:   req.Extension,
+	})
+	if err != nil {
+		if err == usecase.ErrCategoryNotFound {
+			c.JSON(http.StatusNotFound, dto.ErrorResponse(err.Error()))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse(dto.PresignUploadResponse{
+		UploadURL: presignedResp.UploadURL,
+		PublicURL: presignedResp.PublicURL,
+		ObjectKey: presignedResp.ObjectKey,
+		ExpiresAt: presignedResp.ExpiresAt,
+	}, "Presigned URL generated successfully"))
+}
